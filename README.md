@@ -84,7 +84,9 @@ goal met + gene-compliant the whole way = a good product
 ```
 <your-project>/
 ├── .gene/
-│   └── gene.yaml        # gene version + product manifest (idempotency detector)
+│   ├── gene.yaml        # gene version + product manifest (idempotency detector)
+│   ├── trace.jsonl      # runtime observability log (local; git-ignored)
+│   └── .gitignore       # ignores trace.jsonl
 ├── skills/<name>/       # gene-conforming products (the atoms)
 │   ├── skill.yaml       #   metadata + when-to-use + self-describe (uses:)
 │   ├── prompt.md        #   LLM semantic layer
@@ -106,7 +108,8 @@ geneprint/
 │   └── marketplace.json          # self-marketplace (installable from this repo)
 ├── commands/
 │   ├── inherit.md                # /inherit — grow a gene-conforming skill
-│   └── eval.md                   # /eval — grade a skill against its eval cases
+│   ├── eval.md                   # /eval — grade a skill against its eval cases
+│   └── trace.md                  # /trace — runtime observability summary
 ├── gene/
 │   └── golden-skill/             # the golden /review skill — the DNA seed /inherit replicates
 │       ├── skill.yaml            #   metadata + when-to-use + self-describe (uses:)
@@ -124,8 +127,12 @@ geneprint/
 │   ├── compiler.mjs              #   skills/ → AGENTS.md + .claude/skills + .cursor/rules
 │   ├── scaffold.mjs              #   blank gene-conforming skill skeleton
 │   ├── eval.mjs                  #   load / grade / summarize eval cases
-│   └── cli.mjs                   #   inherit + scaffold + eval orchestration + CLI
-├── test/                         # 40 tests (node:test)
+│   ├── trace.mjs                 #   runtime observability (record / summarize)
+│   └── cli.mjs                   #   inherit + scaffold + eval + trace + CLI
+├── hooks/
+│   ├── hooks.json                # PostToolUse(Failure) → observe.mjs
+│   └── observe.mjs               # passive trace logger (no-op outside gene projects)
+├── test/                         # 44 tests (node:test)
 │   ├── fingerprint.test.mjs
 │   ├── manifest.test.mjs
 │   ├── foundation.test.mjs
@@ -136,6 +143,7 @@ geneprint/
 │   ├── collect-diff.test.mjs
 │   ├── scaffold.test.mjs
 │   ├── eval.test.mjs
+│   ├── trace.test.mjs
 │   └── acceptance.test.mjs       #   end-to-end (spec §9)
 ├── docs/superpowers/
 │   ├── specs/                    # design spec
@@ -173,7 +181,7 @@ Requirements: **Node ≥ 18** and **git**.
 
 ```bash
 git clone https://github.com/lxb12123/geneprint && cd geneprint
-npm test          # 40/40 should pass
+npm test          # 44/44 should pass
 
 # Scaffold a blank conforming skill, fill it, then imprint into any project:
 node lib/cli.mjs scaffold /tmp/my-skill --name my-skill
@@ -191,15 +199,15 @@ The bundled golden skill **`/review`** demonstrates all five genes: a determinis
 
 ## Status & roadmap
 
-**Done & tested.** Idempotent `/inherit` engine, `scaffold` generator, the golden `/review` skill, host-native compilation (Claude / Cursor / AGENTS.md), a deterministic skill-**eval** harness (`/eval`), installable as a Claude Code plugin — **40 passing tests**.
+**Done & tested.** Idempotent `/inherit` engine, `scaffold` generator, the golden `/review` skill, host-native compilation (Claude / Cursor / AGENTS.md), a deterministic skill-**eval** harness (`/eval`), and passive **runtime observability** (`/trace`, a PostToolUse hook that no-ops outside gene projects), installable as a Claude Code plugin — **44 passing tests**.
 
 | Phase | Adds | Status |
 |-------|------|--------|
 | **A** | golden skill + foundation + idempotency core | ✅ |
 | **B** | `/inherit` flow (interview → scaffold → fill → imprint) | ✅ |
 | **C** | installable plugin + host-native compile (Claude / Cursor / AGENTS.md) | ✅ |
-| **D** | skill-eval harness (`/eval`, deterministic grading) | ✅ · LLM-rubric & runtime observability next |
-| **E** | remaining primitives (mcp probes, subagents, hooks, permissions) + versioning / registry | planned |
+| **D** | skill-eval harness (`/eval`) + runtime observability (`/trace` hook) | ✅ · LLM-rubric grading next |
+| **E** | remaining primitives (mcp probes, subagents, permissions) + versioning / registry | planned |
 
 Design docs live in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
 
