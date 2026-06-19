@@ -89,7 +89,8 @@ goal met + gene-compliant the whole way = a good product
 │   ├── skill.yaml       #   metadata + when-to-use + self-describe (uses:)
 │   ├── prompt.md        #   LLM semantic layer
 │   ├── scripts/         #   deterministic layer (0 tokens)
-│   └── reference/       #   load-on-demand knowledge
+│   ├── reference/       #   load-on-demand knowledge
+│   └── evals/           #   eval cases (graded by /eval)
 ├── AGENTS.md            # compiled: open standard (read by Cursor / Copilot / Gemini)
 ├── .claude/skills/<name>/SKILL.md   # compiled: Claude Code native (Claude ignores AGENTS.md)
 ├── .cursor/rules/<name>.mdc         # compiled: Cursor native
@@ -104,15 +105,17 @@ geneprint/
 │   ├── plugin.json               # Claude Code plugin manifest
 │   └── marketplace.json          # self-marketplace (installable from this repo)
 ├── commands/
-│   └── inherit.md                # the /inherit meta-command (uses ${CLAUDE_PLUGIN_ROOT})
+│   ├── inherit.md                # /inherit — grow a gene-conforming skill
+│   └── eval.md                   # /eval — grade a skill against its eval cases
 ├── gene/
 │   └── golden-skill/             # the golden /review skill — the DNA seed /inherit replicates
 │       ├── skill.yaml            #   metadata + when-to-use + self-describe (uses:)
 │       ├── prompt.md             #   LLM review prompt
 │       ├── scripts/
 │       │   └── collect-diff.mjs  #   deterministic git diff (0 tokens)
-│       └── reference/
-│           └── review-standards.md   # load-on-demand knowledge
+│       ├── reference/
+│       │   └── review-standards.md   # load-on-demand knowledge
+│       └── evals/                #   example eval cases
 ├── lib/                          # deterministic Node.js engine
 │   ├── fingerprint.mjs           #   content fingerprint (idempotency)
 │   ├── manifest.mjs              #   .gene/gene.yaml read/write
@@ -120,8 +123,9 @@ geneprint/
 │   ├── skill-install.mjs         #   fingerprint-idempotent install
 │   ├── compiler.mjs              #   skills/ → AGENTS.md + .claude/skills + .cursor/rules
 │   ├── scaffold.mjs              #   blank gene-conforming skill skeleton
-│   └── cli.mjs                   #   inherit + scaffold orchestration + CLI
-├── test/                         # 35 tests (node:test)
+│   ├── eval.mjs                  #   load / grade / summarize eval cases
+│   └── cli.mjs                   #   inherit + scaffold + eval orchestration + CLI
+├── test/                         # 40 tests (node:test)
 │   ├── fingerprint.test.mjs
 │   ├── manifest.test.mjs
 │   ├── foundation.test.mjs
@@ -131,6 +135,7 @@ geneprint/
 │   ├── cli.test.mjs
 │   ├── collect-diff.test.mjs
 │   ├── scaffold.test.mjs
+│   ├── eval.test.mjs
 │   └── acceptance.test.mjs       #   end-to-end (spec §9)
 ├── docs/superpowers/
 │   ├── specs/                    # design spec
@@ -168,7 +173,7 @@ Requirements: **Node ≥ 18** and **git**.
 
 ```bash
 git clone https://github.com/lxb12123/geneprint && cd geneprint
-npm test          # 35/35 should pass
+npm test          # 40/40 should pass
 
 # Scaffold a blank conforming skill, fill it, then imprint into any project:
 node lib/cli.mjs scaffold /tmp/my-skill --name my-skill
@@ -186,14 +191,15 @@ The bundled golden skill **`/review`** demonstrates all five genes: a determinis
 
 ## Status & roadmap
 
-**Done & tested.** Idempotent `/inherit` engine, `scaffold` skeleton generator, the golden `/review` skill, host-native compilation (Claude `.claude/skills`, Cursor `.cursor/rules`, others via `AGENTS.md`), installable as a Claude Code plugin — **35 passing tests**.
+**Done & tested.** Idempotent `/inherit` engine, `scaffold` generator, the golden `/review` skill, host-native compilation (Claude / Cursor / AGENTS.md), a deterministic skill-**eval** harness (`/eval`), installable as a Claude Code plugin — **40 passing tests**.
 
 | Phase | Adds | Status |
 |-------|------|--------|
 | **A** | golden skill + foundation + idempotency core | ✅ |
 | **B** | `/inherit` flow (interview → scaffold → fill → imprint) | ✅ |
-| **C** | installable plugin (`.claude-plugin/` + self-marketplace) + host-native compile (Claude / Cursor / AGENTS.md) | ✅ |
-| **D** | other primitives (mcp probes, subagents, hooks, permissions) + engineering layer (eval, observability, versioning, registry) | planned |
+| **C** | installable plugin + host-native compile (Claude / Cursor / AGENTS.md) | ✅ |
+| **D** | skill-eval harness (`/eval`, deterministic grading) | ✅ · LLM-rubric & runtime observability next |
+| **E** | remaining primitives (mcp probes, subagents, hooks, permissions) + versioning / registry | planned |
 
 Design docs live in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
 

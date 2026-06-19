@@ -1,0 +1,5 @@
+{
+  "name": "no-changes",
+  "input": "工作区相对 HEAD 没有任何改动",
+  "expect": { "contains": ["无改动"] }
+}

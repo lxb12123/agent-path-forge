@@ -1,0 +1,5 @@
+{
+  "name": "flags-null-deref",
+  "input": "改动新增 `function getName(u){ return u.profile.name }`,对可能为 null 的 u / u.profile 无任何检查",
+  "expect": { "matches": ["blocker|warning|nit", "null|空|undefined"] }
+}
