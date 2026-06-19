@@ -68,7 +68,7 @@ goal met + gene-compliant the whole way = a good product
 | ② | Multi-host compile + open standard | one source → `AGENTS.md` + `.claude/skills` + `.cursor/rules` |
 | ③ | Three-tier lazy loading | metadata → body → `reference/` on demand |
 | ④ | Committable artifacts | config `GENE.md` ⟂ memory `MEMORY.md` |
-| ⑤ | Self-describing primitives | `skill.yaml` declares the `mcp` / permissions / subagents it uses |
+| ⑤ | Self-describing primitives | `skill.yaml` `uses:` → compiled to Claude `allowed-tools` + AGENTS.md deps |
 
 ### The 8 primitives an agent can grow
 
@@ -136,7 +136,7 @@ geneprint/
 │   └── observe.mjs               # passive trace logger (no-op outside gene projects)
 ├── mcp/
 │   └── server.mjs                # zero-dep MCP stdio server (diagnostics tool)
-├── test/                         # 55 tests (node:test)
+├── test/                         # 59 tests (node:test)
 │   ├── fingerprint.test.mjs
 │   ├── manifest.test.mjs
 │   ├── foundation.test.mjs
@@ -150,6 +150,7 @@ geneprint/
 │   ├── trace.test.mjs
 │   ├── diagnostics.test.mjs
 │   ├── mcp-server.test.mjs
+│   ├── self-describe.test.mjs
 │   └── acceptance.test.mjs       #   end-to-end (spec §9)
 ├── docs/superpowers/
 │   ├── specs/                    # design spec
@@ -187,7 +188,7 @@ Requirements: **Node ≥ 18** and **git**.
 
 ```bash
 git clone https://github.com/lxb12123/geneprint && cd geneprint
-npm test          # 55/55 should pass
+npm test          # 59/59 should pass
 
 # Scaffold a blank conforming skill, fill it, then imprint into any project:
 node lib/cli.mjs scaffold /tmp/my-skill --name my-skill
@@ -205,7 +206,7 @@ The bundled golden skill **`/review`** demonstrates all five genes: a determinis
 
 ## Status & roadmap
 
-**Done & tested.** Idempotent `/inherit` engine, `scaffold` generator, the golden `/review` skill, host-native compilation (Claude / Cursor / AGENTS.md), a deterministic skill-**eval** harness (`/eval`), passive **runtime observability** (`/trace` hook), and a zero-dep **MCP diagnostics probe** (run build/test → structured errors for self-correction), installable as a Claude Code plugin — **55 passing tests**.
+**Done & tested.** Idempotent `/inherit` engine, `scaffold` generator, the golden `/review` skill, host-native compilation (Claude / Cursor / AGENTS.md), a deterministic skill-**eval** harness (`/eval`), passive **runtime observability** (`/trace` hook), a zero-dep **MCP diagnostics probe** (run build/test → structured errors for self-correction), and active **self-describing permissions** (a skill's `uses:` compiles to real Claude `allowed-tools`), installable as a Claude Code plugin — **59 passing tests**.
 
 | Phase | Adds | Status |
 |-------|------|--------|
@@ -213,7 +214,7 @@ The bundled golden skill **`/review`** demonstrates all five genes: a determinis
 | **B** | `/inherit` flow (interview → scaffold → fill → imprint) | ✅ |
 | **C** | installable plugin + host-native compile (Claude / Cursor / AGENTS.md) | ✅ |
 | **D** | skill-eval harness (`/eval`) + runtime observability (`/trace` hook) | ✅ · LLM-rubric grading next |
-| **E** | MCP diagnostics probe (zero-dep stdio server, self-healing loop) | ✅ · subagents / permissions / versioning next |
+| **E** | MCP diagnostics probe + self-describing permissions (gene ⑤ → real `allowed-tools`) | ✅ · subagents / versioning / CI next |
 
 Design docs live in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
 
