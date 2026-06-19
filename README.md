@@ -100,17 +100,41 @@ goal met + gene-compliant the whole way = a good product
 
 ```
 geneprint/
-├── commands/inherit.md       # the /inherit meta-command (prompt)
-├── gene/golden-skill/        # the golden /review skill — the DNA seed that /inherit replicates
-├── lib/                      # deterministic Node.js engine
-│   ├── fingerprint.mjs       #   content fingerprint (idempotency)
-│   ├── manifest.mjs          #   .gene/gene.yaml read/write
-│   ├── foundation.mjs        #   idempotent foundation stamping
-│   ├── skill-install.mjs     #   fingerprint-idempotent install
-│   ├── compiler.mjs          #   skills/ → AGENTS.md
-│   └── cli.mjs               #   inherit orchestration + CLI
-├── test/                     # 27 tests (node:test)
-└── plugin.json
+├── commands/
+│   └── inherit.md                # the /inherit meta-command (prompt)
+├── gene/
+│   └── golden-skill/             # the golden /review skill — the DNA seed /inherit replicates
+│       ├── skill.yaml            #   metadata + when-to-use + self-describe (uses:)
+│       ├── prompt.md             #   LLM review prompt
+│       ├── scripts/
+│       │   └── collect-diff.mjs  #   deterministic git diff (0 tokens)
+│       └── reference/
+│           └── review-standards.md   # load-on-demand knowledge
+├── lib/                          # deterministic Node.js engine
+│   ├── fingerprint.mjs           #   content fingerprint (idempotency)
+│   ├── manifest.mjs              #   .gene/gene.yaml read/write
+│   ├── foundation.mjs            #   idempotent foundation stamping
+│   ├── skill-install.mjs         #   fingerprint-idempotent install
+│   ├── compiler.mjs              #   skills/ → AGENTS.md
+│   └── cli.mjs                   #   inherit orchestration + CLI
+├── test/                         # 27 tests (node:test)
+│   ├── fingerprint.test.mjs
+│   ├── manifest.test.mjs
+│   ├── foundation.test.mjs
+│   ├── skill-install.test.mjs
+│   ├── compiler.test.mjs
+│   ├── cli.test.mjs
+│   ├── collect-diff.test.mjs
+│   └── acceptance.test.mjs       #   end-to-end (spec §9)
+├── docs/superpowers/
+│   ├── specs/                    # design spec
+│   └── plans/                    # implementation plan
+├── plugin.json                   # Claude Code plugin manifest
+├── package.json                  # Node ESM project (dep: js-yaml)
+├── package-lock.json
+├── README.md
+├── LICENSE                       # MIT
+└── .gitignore
 ```
 
 ---
