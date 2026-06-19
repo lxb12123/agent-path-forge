@@ -16,13 +16,13 @@ Today's AI coding agents build fast but inconsistently — ad-hoc structure, thr
 
 **Geneprint takes a third path: heredity, not methodology.**
 
-- 🧬 **A gene, not a framework.** It imprints a small, opinionated *architecture gene* into your project. Whatever your agent grows afterward **inherits** that gene's traits — deterministic/LLM split, multi-host output, lazy loading, committable artifacts, self-describing primitives.
-- 🪶 **Pure & light.** No persona cast, no multi-stage process, no learning curve. One command.
+- 🧬 **A gene, not a framework.** It imprints a small, opinionated *architecture gene* into your project. Whatever your agent grows afterward **inherits** that gene's traits.
+- 🪶 **Pure & light.** No persona cast, no multi-stage process, no learning curve. One command. (One runtime dep: `js-yaml`, bundled.)
 - ♻️ **Strictly idempotent.** Run it any number of times — same inputs, same result, never clobbers your files.
-- 🚪 **Imprint-and-leave.** The gene becomes *the project's own*. Geneprint doesn't stay resident and doesn't make you depend on it.
-- 🌐 **Stands on open standards.** Multi-host via the open `AGENTS.md` standard — not reinvented.
+- 🚪 **Imprint-and-leave.** The gene becomes *the project's own*. Geneprint doesn't stay resident.
+- 🌐 **Stands on open standards.** Multi-host via the open `AGENTS.md` standard + each host's native format — not reinvented.
 
-> The value isn't a list of features (others have those). It's the **purity, form, and idempotency**: a clean architectural inheritance any agent can grow on, that you own the moment it lands.
+> The value isn't a feature list (others have those). It's the **purity, form, and idempotency**: a clean architectural inheritance any agent can grow on, that you own the moment it lands.
 
 ---
 
@@ -33,47 +33,33 @@ Today's AI coding agents build fast but inconsistently — ad-hoc structure, thr
 ```
 /inherit  + an idea
    │
-   ├─ Is the gene foundation present in this project?
-   │     ├─ no  → stamp it (.gene/, GENE.md, skills/, AGENTS.md)
-   │     └─ yes → skip — never re-stamp
-   │
+   ├─ gene foundation present?  no → stamp it (.gene/, GENE.md, skills/)   yes → skip
    ├─ scaffold a blank gene-conforming skill → agent fills it in
-   ├─ install it (fingerprint-idempotent) + update the manifest (.gene/gene.yaml)
-   └─ recompile host outputs (AGENTS.md + .claude/skills + .cursor/rules)
+   ├─ install it (fingerprint-idempotent) + record version in .gene/gene.yaml
+   └─ recompile host outputs (AGENTS.md + .claude/skills + .claude/agents + .cursor/rules)
 ```
 
-Same inputs → identical tree. Re-runs never mutate existing files (guaranteed by a content-fingerprint + manifest check).
+Same inputs → identical tree. Re-runs never mutate existing files (content-fingerprint + manifest check).
 
-### Execution chain
+### Companion commands & capabilities
 
-```
-user goal
-  │
-  ▼  explicit entry (a command) — or implicit (a skill's when-to-use, auto-fired by the agent)
-skill (capability atom)
-  ├─ scripts    deterministic layer (0 tokens, same in → same out)
-  ├─ mcp        tools / probes (logs, screenshots, AST …)
-  ├─ subagents  delegate work
-  └─ hooks      deterministic lifecycle control
-  │
-  ▼
-goal met + gene-compliant the whole way = a good product
-```
+- **`/eval`** — grade a skill against its `evals/` cases: deterministic assertions (contains / regex) **plus** optional LLM-rubric judging.
+- **`/trace`** — runtime observability: a passive `PostToolUse` hook logs tool calls to `.gene/trace.jsonl` (no-ops outside gene projects); `/trace` summarizes by tool / skill / failures.
+- **`diagnostics` MCP tool** — run `npm test` / build → structured `{exitCode, errors, tail}` so the agent can self-correct ("error → probe → fix" loop).
 
 ### The 5 genes (every product is born with these)
 
 | # | Gene | Lands as |
 |---|------|----------|
 | ① | Deterministic + semantic split | `scripts/` (deterministic) ⟂ `prompt.md` (LLM) |
-| ② | Multi-host compile + open standard | one source → `AGENTS.md` + `.claude/skills` + `.cursor/rules` |
+| ② | Multi-host compile + open standard | one source → `AGENTS.md` + `.claude/skills` + `.claude/agents` + `.cursor/rules` |
 | ③ | Three-tier lazy loading | metadata → body → `reference/` on demand |
 | ④ | Committable artifacts | config `GENE.md` ⟂ memory `MEMORY.md` |
 | ⑤ | Self-describing primitives | `skill.yaml` `uses:` → compiled to Claude `allowed-tools` + AGENTS.md deps |
 
 ### The 8 primitives an agent can grow
 
-`skills` · `commands` · `mcp` · `hooks` · `subagents` · `permissions` · `rules` · `ignore`
-(aligned with the field's real taxonomy; deterministic probes, hooks, permissions and sub-agents are all first-class.)
+`skills` · `commands` · `mcp` · `hooks` · `subagents` · `permissions` — implemented · `rules` · `ignore` — planned.
 
 ---
 
@@ -84,17 +70,19 @@ goal met + gene-compliant the whole way = a good product
 ```
 <your-project>/
 ├── .gene/
-│   ├── gene.yaml        # gene version + product manifest (idempotency detector)
+│   ├── gene.yaml        # gene version + product manifest (name · fingerprint · version)
 │   ├── trace.jsonl      # runtime observability log (local; git-ignored)
 │   └── .gitignore       # ignores trace.jsonl
-├── skills/<name>/       # gene-conforming products (the atoms)
-│   ├── skill.yaml       #   metadata + when-to-use + self-describe (uses:)
+├── skills/<name>/       # gene-conforming products (source of truth)
+│   ├── skill.yaml       #   metadata + when-to-use + version + uses{mcp,permissions,subagents}
 │   ├── prompt.md        #   LLM semantic layer
 │   ├── scripts/         #   deterministic layer (0 tokens)
 │   ├── reference/       #   load-on-demand knowledge
-│   └── evals/           #   eval cases (graded by /eval)
-├── AGENTS.md            # compiled: open standard (read by Cursor / Copilot / Gemini)
-├── .claude/skills/<name>/SKILL.md   # compiled: Claude Code native (Claude ignores AGENTS.md)
+│   ├── evals/           #   eval cases (graded by /eval)
+│   └── subagents/       #   optional bundled subagent defs
+├── AGENTS.md            # compiled: open standard (Cursor / Copilot / Gemini read it)
+├── .claude/skills/<name>/SKILL.md   # compiled: Claude native (+ allowed-tools from uses.permissions)
+├── .claude/agents/<name>.md         # compiled: Claude project subagents
 ├── .cursor/rules/<name>.mdc         # compiled: Cursor native
 └── GENE.md              # committable config / architecture decisions
 ```
@@ -107,60 +95,40 @@ geneprint/
 │   ├── plugin.json               # Claude Code plugin manifest
 │   └── marketplace.json          # self-marketplace (installable from this repo)
 ├── .mcp.json                     # declares the geneprint-diagnostics MCP server
+├── .github/workflows/ci.yml      # CI — node --test on push / PR
 ├── commands/
 │   ├── inherit.md                # /inherit — grow a gene-conforming skill
-│   ├── eval.md                   # /eval — grade a skill against its eval cases
+│   ├── eval.md                   # /eval  — grade a skill (deterministic + LLM-rubric)
 │   └── trace.md                  # /trace — runtime observability summary
-├── gene/
-│   └── golden-skill/             # the golden /review skill — the DNA seed /inherit replicates
-│       ├── skill.yaml            #   metadata + when-to-use + self-describe (uses:)
-│       ├── prompt.md             #   LLM review prompt
-│       ├── scripts/
-│       │   └── collect-diff.mjs  #   deterministic git diff (0 tokens)
-│       ├── reference/
-│       │   └── review-standards.md   # load-on-demand knowledge
-│       └── evals/                #   example eval cases
-├── lib/                          # deterministic Node.js engine
+├── gene/golden-skill/            # the golden /review skill — the DNA seed /inherit replicates
+│   ├── skill.yaml                #   + version + uses (permissions, subagents)
+│   ├── prompt.md
+│   ├── scripts/collect-diff.mjs  #   deterministic git diff (0 tokens)
+│   ├── reference/review-standards.md
+│   ├── evals/                    #   no-changes · flags-null-deref
+│   └── subagents/verifier.md     #   review-verifier (adversarial re-check)
+├── lib/                          # deterministic engine (Node ESM; only dep: js-yaml)
 │   ├── fingerprint.mjs           #   content fingerprint (idempotency)
-│   ├── manifest.mjs              #   .gene/gene.yaml read/write
+│   ├── manifest.mjs              #   .gene/gene.yaml read/write + versions
 │   ├── foundation.mjs            #   idempotent foundation stamping
 │   ├── skill-install.mjs         #   fingerprint-idempotent install
-│   ├── compiler.mjs              #   skills/ → AGENTS.md + .claude/skills + .cursor/rules
+│   ├── compiler.mjs              #   → AGENTS.md + .claude/{skills,agents} + .cursor/rules
 │   ├── scaffold.mjs              #   blank gene-conforming skill skeleton
 │   ├── eval.mjs                  #   load / grade / summarize eval cases
 │   ├── trace.mjs                 #   runtime observability (record / summarize)
-│   ├── diagnostics.mjs           #   run a command → structured errors (for the MCP probe)
-│   └── cli.mjs                   #   inherit + scaffold + eval + trace + CLI
+│   ├── diagnostics.mjs           #   run a command → structured errors (MCP probe)
+│   ├── registry.mjs              #   skill version + dependency check
+│   └── cli.mjs                   #   inherit / scaffold / eval / trace orchestration + CLI
 ├── hooks/
 │   ├── hooks.json                # PostToolUse(Failure) → observe.mjs
 │   └── observe.mjs               # passive trace logger (no-op outside gene projects)
 ├── mcp/
 │   └── server.mjs                # zero-dep MCP stdio server (diagnostics tool)
-├── test/                         # 59 tests (node:test)
-│   ├── fingerprint.test.mjs
-│   ├── manifest.test.mjs
-│   ├── foundation.test.mjs
-│   ├── skill-install.test.mjs
-│   ├── compiler.test.mjs
-│   ├── compiler-hosts.test.mjs
-│   ├── cli.test.mjs
-│   ├── collect-diff.test.mjs
-│   ├── scaffold.test.mjs
-│   ├── eval.test.mjs
-│   ├── trace.test.mjs
-│   ├── diagnostics.test.mjs
-│   ├── mcp-server.test.mjs
-│   ├── self-describe.test.mjs
-│   └── acceptance.test.mjs       #   end-to-end (spec §9)
-├── docs/superpowers/
-│   ├── specs/                    # design spec
-│   └── plans/                    # implementation plan
+├── test/                         # 69 tests (node:test), 18 files
+├── docs/superpowers/{specs,plans}/   # design spec + implementation plan
 ├── node_modules/                 # bundled (js-yaml) — zero-setup install
-├── package.json                  # Node ESM project (dep: js-yaml)
-├── package-lock.json
-├── README.md
-├── LICENSE                       # MIT
-└── .gitignore
+├── package.json · package-lock.json
+└── README.md · LICENSE · .gitignore
 ```
 
 ---
@@ -174,13 +142,15 @@ geneprint/
 /plugin install geneprint@geneprint-marketplace
 ```
 
-Then, inside any project, describe a skill you want:
+Then, in any project:
 
 ```text
-/geneprint:inherit
+/geneprint:inherit          # describe a skill → it's imprinted + compiled to every host
+/geneprint:eval skills/<n>  # grade a skill against its eval cases
+/geneprint:trace .          # runtime observability summary
 ```
 
-Claude interviews you, scaffolds a gene-conforming skill, and the engine imprints it into the project (`.gene/`, `skills/<name>/`, `AGENTS.md`). Re-run any time — it never clobbers existing files. Dependencies are bundled, so there is no setup step.
+Claude interviews you, scaffolds a gene-conforming skill, and imprints it (`.gene/`, `skills/<name>/`, host outputs). Re-run any time — it never clobbers existing files. Dependencies are bundled, so there's no setup step.
 
 ### From source / for development
 
@@ -188,35 +158,30 @@ Requirements: **Node ≥ 18** and **git**.
 
 ```bash
 git clone https://github.com/lxb12123/geneprint && cd geneprint
-npm test          # 59/59 should pass
+npm test          # 69/69 should pass
 
-# Scaffold a blank conforming skill, fill it, then imprint into any project:
-node lib/cli.mjs scaffold /tmp/my-skill --name my-skill
-node lib/cli.mjs inherit /path/to/project --name my-skill --from /tmp/my-skill
-
-# Or imprint the bundled golden /review skill directly:
+# Imprint the bundled golden /review skill into any project:
 node lib/cli.mjs inherit /path/to/project --name review --from gene/golden-skill
 ```
 
-To iterate on the plugin itself inside Claude Code: `claude --plugin-dir .` then `/reload-plugins`.
-
-The bundled golden skill **`/review`** demonstrates all five genes: a deterministic `collect-diff.mjs` (0-token `git diff`) feeds an LLM review `prompt.md`, with standards loaded on demand.
+To iterate on the plugin inside Claude Code: `claude --plugin-dir .` then `/reload-plugins`.
 
 ---
 
 ## Status & roadmap
 
-**Done & tested.** Idempotent `/inherit` engine, `scaffold` generator, the golden `/review` skill, host-native compilation (Claude / Cursor / AGENTS.md), a deterministic skill-**eval** harness (`/eval`), passive **runtime observability** (`/trace` hook), a zero-dep **MCP diagnostics probe** (run build/test → structured errors for self-correction), and active **self-describing permissions** (a skill's `uses:` compiles to real Claude `allowed-tools`), installable as a Claude Code plugin — **59 passing tests**.
+**Done & tested — 69 passing tests, CI green.**
 
 | Phase | Adds | Status |
 |-------|------|--------|
 | **A** | golden skill + foundation + idempotency core | ✅ |
 | **B** | `/inherit` flow (interview → scaffold → fill → imprint) | ✅ |
 | **C** | installable plugin + host-native compile (Claude / Cursor / AGENTS.md) | ✅ |
-| **D** | skill-eval harness (`/eval`) + runtime observability (`/trace` hook) | ✅ · LLM-rubric grading next |
-| **E** | MCP diagnostics probe + self-describing permissions (gene ⑤ → real `allowed-tools`) | ✅ · subagents / versioning / CI next |
+| **D** | `/eval` (deterministic + LLM-rubric) + `/trace` runtime observability | ✅ |
+| **E** | MCP diagnostics probe · self-describing permissions · skill versioning/deps · subagents · CI | ✅ |
+| **next** | `rules` / `ignore` primitives · distribution registry · more golden skills | planned |
 
-Design docs live in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
+Design docs: [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
 
 ---
 
