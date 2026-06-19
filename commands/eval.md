@@ -18,6 +18,7 @@ allowed-tools: Bash(node *)
    输出 `[{name, input, expect}, ...]`。
 3. **对每个 case**:按 `input` 描述设置场景(必要时建临时 fixture / git 仓库),运行该技能,捕获它的输出文本。
 4. 把所有输出收集成一个 JSON `{ "<caseName>": "<output>" }`,写到临时文件,例如 `runs.json`。
+   - 对带 `expect.rubric` 的用例:你(作为 LLM 裁判)判断该输出是否满足 rubric 描述,写成对象 `{ "<caseName>": { "output": "...", "rubric": true/false } }`。引擎会把确定性断言与你的 rubric 裁决一起计入通过与否。
 5. 判分:
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" eval skills/<name> --runs runs.json
