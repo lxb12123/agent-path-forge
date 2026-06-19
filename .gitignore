@@ -1,1 +1,2 @@
-node_modules/
+# node_modules is intentionally committed so the plugin works on install
+# with zero setup (no separate `npm install` step). Only runtime dep: js-yaml.

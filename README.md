@@ -37,8 +37,8 @@ Today's AI coding agents build fast but inconsistently — ad-hoc structure, thr
    │     ├─ no  → stamp it (.gene/, GENE.md, skills/, AGENTS.md)
    │     └─ yes → skip — never re-stamp
    │
-   ├─ grow a gene-conforming product (fingerprint-idempotent)
-   ├─ update the manifest (.gene/gene.yaml)
+   ├─ scaffold a blank gene-conforming skill → agent fills it in
+   ├─ install it (fingerprint-idempotent) + update the manifest (.gene/gene.yaml)
    └─ recompile AGENTS.md
 ```
 
@@ -98,8 +98,11 @@ goal met + gene-compliant the whole way = a good product
 
 ```
 geneprint/
+├── .claude-plugin/
+│   ├── plugin.json               # Claude Code plugin manifest
+│   └── marketplace.json          # self-marketplace (installable from this repo)
 ├── commands/
-│   └── inherit.md                # the /inherit meta-command (prompt)
+│   └── inherit.md                # the /inherit meta-command (uses ${CLAUDE_PLUGIN_ROOT})
 ├── gene/
 │   └── golden-skill/             # the golden /review skill — the DNA seed /inherit replicates
 │       ├── skill.yaml            #   metadata + when-to-use + self-describe (uses:)
@@ -114,8 +117,9 @@ geneprint/
 │   ├── foundation.mjs            #   idempotent foundation stamping
 │   ├── skill-install.mjs         #   fingerprint-idempotent install
 │   ├── compiler.mjs              #   skills/ → AGENTS.md
-│   └── cli.mjs                   #   inherit orchestration + CLI
-├── test/                         # 27 tests (node:test)
+│   ├── scaffold.mjs              #   blank gene-conforming skill skeleton
+│   └── cli.mjs                   #   inherit + scaffold orchestration + CLI
+├── test/                         # 29 tests (node:test)
 │   ├── fingerprint.test.mjs
 │   ├── manifest.test.mjs
 │   ├── foundation.test.mjs
@@ -123,11 +127,12 @@ geneprint/
 │   ├── compiler.test.mjs
 │   ├── cli.test.mjs
 │   ├── collect-diff.test.mjs
+│   ├── scaffold.test.mjs
 │   └── acceptance.test.mjs       #   end-to-end (spec §9)
 ├── docs/superpowers/
 │   ├── specs/                    # design spec
 │   └── plans/                    # implementation plan
-├── plugin.json                   # Claude Code plugin manifest
+├── node_modules/                 # bundled (js-yaml) — zero-setup install
 ├── package.json                  # Node ESM project (dep: js-yaml)
 ├── package-lock.json
 ├── README.md
@@ -137,20 +142,40 @@ geneprint/
 
 ---
 
-## Quick start (v0.1)
+## Quick start
 
-Requirements: **Node ≥ 18** and **git**. Only runtime dependency: `js-yaml`.
+### As a Claude Code plugin (recommended)
 
-```bash
-git clone <this-repo> geneprint && cd geneprint
-npm install
-npm test          # 27/27 should pass
-
-# Imprint the gene into any project and grow a skill from the golden seed:
-node lib/cli.mjs inherit /path/to/your/project --name review --from gene/golden-skill
+```text
+/plugin marketplace add lxb12123/geneprint
+/plugin install geneprint@geneprint-marketplace
 ```
 
-That stamps `.gene/`, installs a gene-conforming `skills/review/`, and compiles `AGENTS.md`. Re-run it — nothing breaks. Inside Claude Code, the `/inherit` command drives the same engine conversationally (describe an idea → it grows a conforming skill).
+Then, inside any project, describe a skill you want:
+
+```text
+/geneprint:inherit
+```
+
+Claude interviews you, scaffolds a gene-conforming skill, and the engine imprints it into the project (`.gene/`, `skills/<name>/`, `AGENTS.md`). Re-run any time — it never clobbers existing files. Dependencies are bundled, so there is no setup step.
+
+### From source / for development
+
+Requirements: **Node ≥ 18** and **git**.
+
+```bash
+git clone https://github.com/lxb12123/geneprint && cd geneprint
+npm test          # 29/29 should pass
+
+# Scaffold a blank conforming skill, fill it, then imprint into any project:
+node lib/cli.mjs scaffold /tmp/my-skill --name my-skill
+node lib/cli.mjs inherit /path/to/project --name my-skill --from /tmp/my-skill
+
+# Or imprint the bundled golden /review skill directly:
+node lib/cli.mjs inherit /path/to/project --name review --from gene/golden-skill
+```
+
+To iterate on the plugin itself inside Claude Code: `claude --plugin-dir .` then `/reload-plugins`.
 
 The bundled golden skill **`/review`** demonstrates all five genes: a deterministic `collect-diff.mjs` (0-token `git diff`) feeds an LLM review `prompt.md`, with standards loaded on demand.
 
@@ -158,14 +183,14 @@ The bundled golden skill **`/review`** demonstrates all five genes: a determinis
 
 ## Status & roadmap
 
-**v0.1 — done & tested.** Idempotent `/inherit` engine, the golden `/review` skill, `AGENTS.md` compilation, 27 passing tests.
+**Done & tested.** Idempotent `/inherit` engine, `scaffold` skeleton generator, the golden `/review` skill, `AGENTS.md` compilation, installable as a Claude Code plugin — **29 passing tests**.
 
-| Phase | Adds |
-|-------|------|
-| **A** ✅ | golden skill + foundation + idempotency core (v0.1) |
-| **B** | full `/inherit` conversation (interview → name → place → compile) |
-| **C** | packaged installable plugin + host-specific compilation |
-| **D** | the other primitives (mcp probes, subagents, hooks, permissions) + engineering layer (eval, observability, versioning, registry) |
+| Phase | Adds | Status |
+|-------|------|--------|
+| **A** | golden skill + foundation + idempotency core | ✅ |
+| **B** | `/inherit` flow (interview → scaffold → fill → imprint) | ✅ |
+| **C** | installable plugin (`.claude-plugin/` + self-marketplace) | ✅ · host-specific compile pending |
+| **D** | other primitives (mcp probes, subagents, hooks, permissions) + engineering layer (eval, observability, versioning, registry) | planned |
 
 Design docs live in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
 

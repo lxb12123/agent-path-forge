@@ -1,0 +1,9 @@
+{
+  "name": "geneprint",
+  "description": "Make everything your AI agent builds inherit one proven architecture — gene + blueprint. Imprint a reusable architecture gene into any project and grow gene-conforming skills with one idempotent command.",
+  "version": "0.1.0",
+  "author": { "name": "Geneprint authors" },
+  "homepage": "https://github.com/lxb12123/geneprint",
+  "repository": "https://github.com/lxb12123/geneprint",
+  "license": "MIT"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "geneprint-marketplace",
+  "owner": { "name": "lxb12123" },
+  "plugins": [
+    {
+      "name": "geneprint",
+      "source": "./",
+      "description": "Make everything your AI agent builds inherit one proven architecture — gene + blueprint.",
+      "version": "0.1.0"
+    }
+  ]
+}
