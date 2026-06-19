@@ -40,3 +40,14 @@ test('compileAgentsMd 写出文件且返回技能数', () => {
   assert.match(readFileSync(join(d, 'AGENTS.md'), 'utf8'), /### review/);
   rmSync(d, { recursive: true, force: true });
 });
+
+test('listSkills 跳过没有 skill.yaml 的目录', () => {
+  const d = tmp();
+  addSkill(d, 'review', '代码审查', 'x');
+  mkdirSync(join(d, 'skills', 'not-a-skill'), { recursive: true });  // 杂目录,无 skill.yaml
+  const list = listSkills(d);
+  assert.deepEqual(list.map((s) => s.name), ['review']);             // 杂目录被忽略
+  const n = compileAgentsMd(d);                                       // 不崩溃
+  assert.equal(n, 1);
+  rmSync(d, { recursive: true, force: true });
+});

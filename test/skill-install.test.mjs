@@ -40,3 +40,18 @@ test('源内容变化则指纹变化', () => {
   assert.notEqual(fingerprintDir(a), fingerprintDir(b));
   rmSync(a, { recursive: true, force: true }); rmSync(b, { recursive: true, force: true });
 });
+
+test('重装时源删了文件: 目标不残留旧文件', () => {
+  const src = tmp(); const dst = tmp();
+  mkdirSync(join(src, 'scripts'), { recursive: true });
+  writeFileSync(join(src, 'skill.yaml'), 'name: demo\n', 'utf8');
+  writeFileSync(join(src, 'scripts', 'a.mjs'), 'a', 'utf8');
+  writeFileSync(join(src, 'scripts', 'b.mjs'), 'b', 'utf8');
+  installSkill(dst, src, 'demo');
+  rmSync(join(src, 'scripts', 'b.mjs'));                 // 源删掉 b
+  writeFileSync(join(src, 'scripts', 'a.mjs'), 'a2', 'utf8'); // 改 a → 指纹变化触发重装
+  const r = installSkill(dst, src, 'demo');
+  assert.equal(r.changed, true);
+  assert.equal(existsSync(join(dst, 'skills', 'demo', 'scripts', 'b.mjs')), false); // 旧文件没了
+  rmSync(src, { recursive: true, force: true }); rmSync(dst, { recursive: true, force: true });
+});

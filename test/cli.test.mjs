@@ -46,3 +46,11 @@ test('重复 inherit 同一技能: 幂等(skill.changed=false)', () => {
   assert.equal(readManifest(d).skills.length, 1);
   rmSync(d, { recursive: true, force: true });
 });
+
+test('非法技能名被拒绝(防目录逃逸)', () => {
+  const d = tmp();
+  const src = makeSrc('x', 'd', 'w');
+  assert.throws(() => inherit(d, { name: '../pwned', from: src }), /invalid skill name/);
+  assert.throws(() => inherit(d, { name: 'Bad Name', from: src }), /invalid skill name/);
+  rmSync(d, { recursive: true, force: true }); rmSync(src, { recursive: true, force: true });
+});
