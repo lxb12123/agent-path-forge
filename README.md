@@ -5,11 +5,9 @@
 
 Geneprint is a lightweight, agent-native plugin (Claude Code / Cursor / Copilot / Gemini …). You describe what you want; your AI agent builds it — and a single idempotent command **imprints a reusable "architecture gene" into the project so that whatever the agent grows is well-architected by birth**, then gets out of the way.
 
-*(中文说明见底部 [▸ 中文](#中文))*
-
 ---
 
-## 理念 / Philosophy
+## Philosophy
 
 Today's AI coding agents build fast but inconsistently — ad-hoc structure, throwaway prompts, no memory, locked to one IDE. The two common answers each have a cost:
 
@@ -28,7 +26,7 @@ Today's AI coding agents build fast but inconsistently — ad-hoc structure, thr
 
 ---
 
-## 原理 / How it works
+## How it works
 
 ### The one command: `/inherit` (idempotent, self-bootstrapping)
 
@@ -79,7 +77,7 @@ goal met + gene-compliant the whole way = a good product
 
 ---
 
-## 架构 / Architecture
+## Architecture
 
 **What gets stamped into your project** (the inherited foundation):
 
@@ -170,20 +168,6 @@ The bundled golden skill **`/review`** demonstrates all five genes: a determinis
 | **D** | the other primitives (mcp probes, subagents, hooks, permissions) + engineering layer (eval, observability, versioning, registry) |
 
 Design docs live in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
-
----
-
-## 中文
-
-**Geneprint(gene + blueprint)** 是一个 agent 原生的轻量插件。你说一个想法,AI(Claude Code / Cursor 等)动手建——一条**幂等命令把一套"架构基因"刻进项目**,之后 agent 长出来的每样东西都**天生继承**这套好架构,然后插件退场。
-
-- 🧬 **是基因,不是框架**:刻一层可继承的架构(确定性/LLM 分离、多宿主、按需加载、可提交工件、自描述原语),不是给你一套要采纳的方法论。
-- 🪶 **纯、轻**:没有角色班子、没有多阶段流程、没有学习曲线,一条命令。
-- ♻️ **严格幂等**:重跑任意次,同入同出,绝不弄坏你的文件。
-- 🚪 **刻完即走**:基因归项目所有,不绑插件。
-- 🌐 **站在开放标准上**:多宿主用 `AGENTS.md`,不重造轮子。
-
-核心机制是一条自举幂等命令 `/inherit`(检测 → 缺则刻地基 → 长出合规产物 → 编译 `AGENTS.md`)。完整设计见 [`docs/superpowers/specs/`](docs/superpowers/specs/)。
 
 ---
 
