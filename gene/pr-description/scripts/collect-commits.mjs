@@ -6,10 +6,14 @@ import { fileURLToPath } from 'node:url';
 // 确定性取"本分支相对基线"的提交标题与改动规模,供 agent 0 token 读取。
 export function collectCommits(cwd = process.cwd(), base = 'main') {
   const range = `${base}..HEAD`;
-  const commits = execFileSync('git', ['log', range, '--pretty=%s'], { cwd, encoding: 'utf8' })
-    .split('\n').filter(Boolean);
-  const diffstat = execFileSync('git', ['diff', '--stat', range], { cwd, encoding: 'utf8' });
-  return { base, commits, diffstat };
+  try {
+    const commits = execFileSync('git', ['log', range, '--pretty=%s'], { cwd, encoding: 'utf8' })
+      .split('\n').filter(Boolean);
+    const diffstat = execFileSync('git', ['diff', '--stat', range], { cwd, encoding: 'utf8' });
+    return { base, commits, diffstat };
+  } catch {
+    return { base, commits: [], diffstat: '' };   // 非 git 仓库 / 基线不存在 → "无新提交",prompt 据此停下
+  }
 }
 
 // 仅当作为脚本直接运行时执行(realpath 兼容 macOS /var→/private/var 符号链接)

@@ -32,3 +32,25 @@ test('追加到已有用户内容后,用空行隔开', () => {
   const out = upsertBlock('keep me\n', S, E, 'x');
   assert.match(out, /keep me\n\n# >>> start >>>/);
 });
+
+test('B1: 文件仅在散文里提到 end 标记、无真实块 → 不无限增长', () => {
+  const prose = `# 我的项目\n\n说明:geneprint 用 ${E} 界定它的块。\n`;
+  const r1 = upsertBlock(prose, S, E, 'rule body');
+  const r2 = upsertBlock(r1, S, E, 'rule body');
+  assert.equal(r2, r1);                         // 第二次起稳定,不漂移
+  assert.equal(r2.split(S).length - 1, 1);      // 只存在一个块
+});
+
+test('B2: 已有两个重复块 → 收敛为一个,旧内容清除,且幂等', () => {
+  const dup = `top\n\n${S}\nOLD\n${E}\n\nmid\n\n${S}\nOLD\n${E}\n\nbot\n`;
+  const out = upsertBlock(dup, S, E, 'NEW');
+  assert.equal(out.split(S).length - 1, 1);
+  assert.match(out, /NEW/);
+  assert.doesNotMatch(out, /OLD/);
+  assert.match(out, /top/); assert.match(out, /bot/);
+  assert.equal(upsertBlock(out, S, E, 'NEW'), out);
+});
+
+test('body 含标记 → 抛错(避免破坏块边界)', () => {
+  assert.throws(() => upsertBlock('', S, E, `x ${E} y`), /must not contain/);
+});

@@ -71,3 +71,24 @@ test('compileAll:有 rules 时 AGENTS.md 含 ## Rules 段', () => {
   assert.match(readFileSync(join(d, 'AGENTS.md'), 'utf8'), /## Rules/);
   rmSync(d, { recursive: true, force: true });
 });
+
+test('compileAll:skill 与 rule 同名 → 抛错(防 .cursor/rules 互相覆盖)', () => {
+  const d = tmp();
+  const sdir = join(d, 'skills', 'dup');
+  mkdirSync(sdir, { recursive: true });
+  writeFileSync(join(sdir, 'skill.yaml'), 'name: dup\ndescription: d\nwhen-to-use: w\n', 'utf8');
+  writeFileSync(join(sdir, 'prompt.md'), 'P', 'utf8');
+  addRule(d, 'dup', 'description: 同名规则', 'R');
+  assert.throws(() => compileAll(d), /name collision/);
+  rmSync(d, { recursive: true, force: true });
+});
+
+test('listRules:坏 frontmatter 不崩溃,降级为空元数据', () => {
+  const d = tmp();
+  addRule(d, 'ok', 'description: 正常', 'body');
+  writeFileSync(join(d, 'rules', 'bad.md'), '---\ndescription: "未闭合\n---\n\nbody\n', 'utf8');
+  const rules = listRules(d);
+  assert.equal(rules.length, 2);
+  assert.equal(rules.find((r) => r.name === 'bad').description, '');
+  rmSync(d, { recursive: true, force: true });
+});

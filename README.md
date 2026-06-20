@@ -131,7 +131,7 @@ geneprint/
 │   └── observe.mjs               # passive trace logger (no-op outside gene projects)
 ├── mcp/
 │   └── server.mjs                # zero-dep MCP stdio server (diagnostics tool)
-├── test/                         # 91 tests (node:test), 23 files
+├── test/                         # 100 tests (node:test), 23 files
 ├── docs/superpowers/{specs,plans}/   # design spec + implementation plan
 ├── node_modules/                 # bundled (js-yaml) — zero-setup install
 ├── package.json · package-lock.json
@@ -165,7 +165,7 @@ Requirements: **Node ≥ 18** and **git**.
 
 ```bash
 git clone https://github.com/lxb12123/geneprint && cd geneprint
-npm test          # 91/91 should pass
+npm test          # 100/100 should pass
 
 # Imprint the bundled golden /review skill into any project:
 node lib/cli.mjs inherit /path/to/project --name review --from gene/golden-skill

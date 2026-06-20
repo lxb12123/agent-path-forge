@@ -1,10 +1,10 @@
 // test/registry-dist.test.mjs — 分发注册表:目录 + 按名解析 + 端到端 inherit
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadRegistry, listRegistry, resolveSource, pluginRoot } from '../lib/registry.mjs';
+import { loadRegistry, listRegistry, resolveSource, pluginRoot, readSkillMeta } from '../lib/registry.mjs';
 import { inherit } from '../lib/cli.mjs';
 import { readManifest } from '../lib/manifest.mjs';
 
@@ -44,5 +44,27 @@ test('inherit --from <注册表名> 端到端继承黄金技能', () => {
   assert.equal(existsSync(join(d, 'skills', 'review', 'prompt.md')), true);
   assert.equal(r.version, '0.1.0');
   assert.deepEqual(readManifest(d).skills.map((s) => s.name), ['review']);
+  rmSync(d, { recursive: true, force: true });
+});
+
+test('resolveSource 拒绝逃出插件根的 source(防目录穿越)', () => {
+  const d = tmp();
+  writeFileSync(join(d, 'registry.json'), JSON.stringify({ skills: [{ name: 'evil', source: '../../etc' }] }), 'utf8');
+  assert.throws(() => resolveSource('evil', d), /escapes plugin root/);
+  writeFileSync(join(d, 'registry.json'), JSON.stringify({ skills: [{ name: 'abs', source: '/etc' }] }), 'utf8');
+  assert.throws(() => resolveSource('abs', d), /must be relative/);
+  rmSync(d, { recursive: true, force: true });
+});
+
+test('readSkillMeta 损坏 skill.yaml → {} 不抛', () => {
+  const d = tmp();
+  writeFileSync(join(d, 'skill.yaml'), 'version: "1.0\n bad: [', 'utf8');
+  assert.deepEqual(readSkillMeta(d), {});
+  rmSync(d, { recursive: true, force: true });
+});
+
+test('inherit 未知 --from → 友好报错', () => {
+  const d = tmp();
+  assert.throws(() => inherit(d, { name: 'x', from: 'no-such-skill-xyz' }), /unknown skill or invalid/);
   rmSync(d, { recursive: true, force: true });
 });

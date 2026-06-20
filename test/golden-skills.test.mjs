@@ -56,3 +56,10 @@ for (const name of ['commit', 'pr-description']) {
     for (const e of evals) JSON.parse(readFileSync(join(dir, 'evals', e), 'utf8'));  // 合法 JSON
   });
 }
+
+test('collectStaged/collectCommits 在非 git 目录 → 空结果而非抛错', () => {
+  const d = mkdtempSync(join(tmpdir(), 'mh-nogit-'));
+  assert.deepEqual(collectStaged(d), { files: [], diff: '', status: '' });
+  assert.deepEqual(collectCommits(d, 'main'), { base: 'main', commits: [], diffstat: '' });
+  rmSync(d, { recursive: true, force: true });
+});

@@ -5,11 +5,15 @@ import { fileURLToPath } from 'node:url';
 
 // 确定性取"已暂存"的改动(只看 --cached),供 agent 0 token 读取。
 export function collectStaged(cwd = process.cwd()) {
-  const files = execFileSync('git', ['diff', '--cached', '--name-only'], { cwd, encoding: 'utf8' })
-    .split('\n').filter(Boolean);
-  const diff = execFileSync('git', ['diff', '--cached'], { cwd, encoding: 'utf8' });
-  const status = execFileSync('git', ['status', '--porcelain'], { cwd, encoding: 'utf8' });
-  return { files, diff, status };
+  try {
+    const files = execFileSync('git', ['diff', '--cached', '--name-only'], { cwd, encoding: 'utf8' })
+      .split('\n').filter(Boolean);
+    const diff = execFileSync('git', ['diff', '--cached'], { cwd, encoding: 'utf8' });
+    const status = execFileSync('git', ['status', '--porcelain'], { cwd, encoding: 'utf8' });
+    return { files, diff, status };
+  } catch {
+    return { files: [], diff: '', status: '' };   // 非 git 仓库等 → 当作"无暂存改动",prompt 据此干净停下
+  }
 }
 
 // 仅当作为脚本直接运行时执行(realpath 兼容 macOS /var→/private/var 符号链接)
