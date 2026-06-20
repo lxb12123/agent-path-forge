@@ -168,23 +168,6 @@ To iterate on the plugin inside Claude Code: `claude --plugin-dir .` then `/relo
 
 ---
 
-## Status & roadmap
-
-**Done & tested — 69 passing tests, CI green.**
-
-| Phase | Adds | Status |
-|-------|------|--------|
-| **A** | golden skill + foundation + idempotency core | ✅ |
-| **B** | `/inherit` flow (interview → scaffold → fill → imprint) | ✅ |
-| **C** | installable plugin + host-native compile (Claude / Cursor / AGENTS.md) | ✅ |
-| **D** | `/eval` (deterministic + LLM-rubric) + `/trace` runtime observability | ✅ |
-| **E** | MCP diagnostics probe · self-describing permissions · skill versioning/deps · subagents · CI | ✅ |
-| **next** | `rules` / `ignore` primitives · distribution registry · more golden skills | planned |
-
-Design docs: [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/).
-
----
-
 ## License
 
 [MIT](LICENSE)
