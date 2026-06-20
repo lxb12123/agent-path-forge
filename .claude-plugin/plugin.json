@@ -1,6 +1,6 @@
 {
   "name": "agent-path-forge",
-  "description": "Give it one idea and your AI coding agent builds it into a real artifact — skill, command, MCP tool, hook, or a whole plugin — on a flawless, reusable architecture that everything it grows inherits. An agent-native golden path: one idempotent command, zero dependencies, multi-host.",
+  "description": "A plugin factory for AI coding agents: describe an idea and your agent builds — and ships — a complete, installable, multi-host plugin (Superpowers-shaped: skills, commands, subagents, MCP, hooks, manifest) on a proven golden-path architecture everything it grows inherits. One idempotent command, zero dependencies.",
   "version": "0.1.0",
   "author": { "name": "Agent Path Forge authors" },
   "homepage": "https://github.com/lxb12123/agent-path-forge",

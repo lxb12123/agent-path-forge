@@ -1,10 +1,12 @@
 # Agent Path Forge
 
-> **Give it one idea, and your AI coding agent builds it out on a flawless, proven architecture.**
+> **Give it one idea, and your AI coding agent builds — and ships — a complete, installable plugin on a flawless, proven architecture.**
 
-Agent Path Forge is a one-command, **zero-dependency** plugin for AI coding agents (Claude Code / Cursor / Copilot / Gemini). It turns that idea into a real, ready-to-use artifact — a **skill, slash-command, MCP tool, hook, subagent, rule, ignore-set, or a whole plugin** — already built on a flawless, reusable architecture that everything you grow afterward inherits. It's idempotent, never clobbers your files, and is yours to keep.
+Agent Path Forge is a **plugin factory** for AI coding agents. Describe an idea, and the agent grows it into a real, **installable, multi-host plugin** — the same shape as [Superpowers](https://github.com/obra/superpowers) — that you can `/plugin install` and run on Claude Code, Cursor, Copilot, or Gemini. One command produces the whole package: a [`plugin.json` + `marketplace.json`](https://docs.claude.com/en/docs/claude-code/plugins) manifest, skills, slash-commands, subagents, an MCP tool, hooks, rules, and its own README — all assembled on a flawless, reusable architecture that everything you grow afterward inherits.
 
-It's an agent-native **[golden path](https://www.redhat.com/en/topics/platform-engineering/golden-paths)** (a.k.a. *paved road*): a proven, opinionated architecture you build on — except your AI agent imprints it from a single idea, not a whole team.
+It's a one-command, **zero-dependency** tool, idempotent (re-run any time, never clobbers your files), and the plugin it builds is yours to keep and publish.
+
+It works because it imprints an agent-native **[golden path](https://www.redhat.com/en/topics/platform-engineering/golden-paths)** (a.k.a. *paved road*): a proven, opinionated architecture you build on — except your AI agent imprints it from a single idea, not a whole team.
 
 ---
 
@@ -17,6 +19,7 @@ This is the "best structure" Agent Path Forge imprints. Every skill or tool your
 - 🪶 **Lean & self-contained.** Three-tier lazy loading (metadata → body → `reference/`) loads only what's needed, and the engine has **zero runtime dependencies** — pure Node, nothing to install.
 - 📦 **Yours & committable.** Config and memory are plain files in your repo (`GENE.md`, `.gene/`). No lock-in, no hidden state — the architecture becomes the project's own.
 - 🔍 **Self-describing & verifiable.** Each skill declares the tools/permissions it uses (compiled into real host config), and ships with built-in evals (`/eval`) and runtime tracing (`/trace`).
+- 🚀 **Installable & shippable.** `pack` turns the project into a `/plugin install`-able plugin — manifest + plugin-root skills + commands + subagents + its own README — that you publish and others install. Not just files in your repo; a distributable product.
 
 …and the command that imprints all this is **strictly idempotent** — run it any number of times, same result, **never clobbers your files** — then it **gets out of the way**.
 
