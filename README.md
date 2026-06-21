@@ -6,7 +6,7 @@ Agent Path Forge is a **plugin factory** for AI coding agents. Describe an idea,
 
 It's a one-command, **zero-dependency** tool, idempotent (re-run any time, never clobbers your files), and the plugin it builds is yours to keep and publish.
 
-It works because it imprints an agent-native **[golden path](https://www.redhat.com/en/topics/platform-engineering/golden-paths)** (a.k.a. *paved road*): a proven, opinionated architecture you build on — except your AI agent imprints it from a single idea, not a whole team.
+It works because it imprints an agent-native **[golden path](https://www.redhat.com/en/topics/platform-engineering/golden-paths)** (a.k.a. *paved road*): a proven, opinionated architecture you build on. At a big company, setting up a golden path takes a whole platform team; here your AI agent does it for you — from a single idea.
 
 ---
 
