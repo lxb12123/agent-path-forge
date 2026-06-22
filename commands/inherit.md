@@ -36,6 +36,12 @@ Your task: inside the **current project**, use Agent Path Forge's deterministic 
 
 5. **Report the result**: relay the JSON the engine outputs (`stamped` / `skill.changed` / `compiledSkills`); `skill.changed=false` means the skill already exists and is unchanged (idempotent, no rewrite).
 
+6. **Point to the next step**: `inherit` only grows the skill into the project — it does NOT package an installable plugin. Tell the user: if they want to ship this as an installable, multi-host plugin (with `.claude-plugin/` manifest, plugin-root `SKILL.md`, `commands/`, and a generated `README.md`), run `pack`:
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" pack .
+   ```
+   Or do both in one step by re-running with `--target plugin`. Skip this if they only want to use the skill locally.
+
 ## Principles
 - Strictly idempotent: safe to re-run, never breaks the user's existing files.
 - Imprint and leave: do not leave any runtime dependency on this plugin in the project.
