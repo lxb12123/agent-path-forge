@@ -1,4 +1,3 @@
-<!-- commands/trace.md -->
 ---
 name: trace
 description: 查看当前项目的运行时观测摘要(gene 技能与工具调用)

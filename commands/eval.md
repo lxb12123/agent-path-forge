@@ -1,4 +1,3 @@
-<!-- commands/eval.md -->
 ---
 name: eval
 description: 评测一个 gene 技能(跑它自带的 evals/ 用例并判分)
