@@ -74,7 +74,7 @@
 
   <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15">
     <text x="72" y="552" fill="#F4F0E8">Describe it once.</text>
-    <text x="210" y="552" fill="#777B84">Ship the whole architecture.</text>
+    <text x="246" y="552" fill="#777B84">Ship the whole architecture.</text>
     <text x="1528" y="552" fill="#777B84" text-anchor="end">IDEMPOTENT · MULTI-HOST · ZERO DEPENDENCIES</text>
   </g>
 
