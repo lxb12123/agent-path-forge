@@ -185,13 +185,35 @@ Requirements: **Node ≥ 18** and **git**.
 
 ```bash
 git clone https://github.com/lxb12123/agent-path-forge && cd agent-path-forge
-npm test          # 120/120 should pass (no install needed — zero deps)
+npm test          # all tests pass (no install needed — zero deps)
 
 # Imprint the bundled golden /review skill into any project:
 node lib/cli.mjs inherit /path/to/project --name review --from gene/golden-skill
 ```
 
-To iterate on the plugin inside Claude Code: `claude --plugin-dir .` then `/reload-plugins`.
+### Test a forged plugin locally before shipping
+
+After you `pack` a plugin, verify it on a host before publishing:
+
+```bash
+# 1. Pack the project into an installable plugin (or use /inherit … --target plugin)
+node lib/cli.mjs pack /path/to/plugin
+
+# 2a. Claude Code — load straight from the source dir (no cache copy):
+claude --plugin-dir /path/to/plugin     # then /reload-plugins, and /<skill> to use it
+# 2b. Or via a local marketplace:
+#   /plugin marketplace add /path/to/plugin
+#   /plugin install <name>@<name>-marketplace
+
+# 3. Codex — drop the skills into the skills dir, then start codex:
+cp -r /path/to/plugin/skills/* ~/.codex/skills/
+```
+
+**Gotcha:** `/plugin install` copies the plugin into a version-pinned cache
+(`~/.claude/plugins/cache/.../<version>/`). Editing your source afterwards
+**won't** update the installed copy — `/reload-plugins` re-reads the cache, not
+your source. While iterating, either use `claude --plugin-dir .` (reads source
+directly) or bump the version so the cache refreshes.
 
 ---
 

@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { inherit } from '../lib/cli.mjs';
 import {
-  pluginMeta, renderPluginJson, renderMarketplaceJson, renderCommand, compilePlugin, pack,
+  pluginMeta, renderPluginJson, renderMarketplaceJson, renderCommand, renderPluginReadme, compilePlugin, pack,
 } from '../lib/plugin-target.mjs';
 import { writeManifest, readManifest, emptyManifest } from '../lib/manifest.mjs';
 
@@ -63,11 +63,30 @@ test('pluginMeta 无配置时按目录名兜底,license 默认 MIT', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
+test("pluginMeta 用相对路径 '.' 兜底名 → 解析成真实目录名,而不是字面 '.'", () => {
+  const meta = pluginMeta('.');
+  assert.notEqual(meta.name, '.');
+  assert.ok(meta.name.length > 1);
+});
+
 test('renderCommand 产出带 frontmatter 的命令,委托给同名技能', () => {
   const cmd = renderCommand({ name: 'review', description: '审查改动', whenToUse: '提交前' });
   assert.match(cmd, /^---\n/);
   assert.match(cmd, /description: 审查改动/);
   assert.match(cmd, /Use the \*\*review\*\* skill/);
+});
+
+test('renderPluginReadme 多 host 快速开始:Claude + Codex(跨运行时)+ Cursor', () => {
+  const md = renderPluginReadme(
+    { name: 'my-pack', marketplace: 'my-pack-marketplace', description: 'D' },
+    [{ name: 'review', description: '审查', whenToUse: '提交前' }],
+  );
+  assert.match(md, /### Claude Code/);
+  assert.match(md, /\/plugin install my-pack@my-pack-marketplace/);
+  assert.match(md, /### Codex/);
+  assert.match(md, /~\/\.codex\/skills/);
+  assert.match(md, /~\/\.agents\/skills/);   // 跨运行时路径(Codex + Copilot + Gemini)
+  assert.match(md, /### Cursor/);
 });
 
 test('renderCommand: 有 argumentHint 则写 argument-hint,无则不写(向后兼容)', () => {
