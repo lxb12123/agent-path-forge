@@ -1,6 +1,7 @@
 ---
 name: eval
 description: Grade a gene skill against its own evals/ cases
+argument-hint: skills/<name>
 allowed-tools: Bash(node *)
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: inherit
 description: Imprint the gene foundation into this project and grow a gene-compliant skill (idempotent)
+argument-hint: <describe the skill you want>
 allowed-tools: Bash(node *)
 ---
 
