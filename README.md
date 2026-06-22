@@ -1,5 +1,9 @@
 # Agent Path Forge
 
+<p align="center">
+  <img src="docs/images/banner.svg" alt="Agent Path Forge — describe one idea, ship a whole installable multi-host plugin" width="100%">
+</p>
+
 > **Give it one idea, and your AI coding agent builds — and ships — a complete, installable plugin on a flawless, proven architecture.**
 
 Agent Path Forge is a **plugin factory** for AI coding agents. Describe an idea, and the agent grows it into a real, **installable, multi-host plugin** that you can `/plugin install` and run on Claude Code, Cursor, Copilot, or Gemini. One command produces the whole package: a [`plugin.json` + `marketplace.json`](https://docs.claude.com/en/docs/claude-code/plugins) manifest, skills, slash-commands, subagents, an MCP tool, hooks, rules, and its own README — all assembled on a flawless, reusable architecture that everything you grow afterward inherits.
