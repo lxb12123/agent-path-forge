@@ -1,9 +1,9 @@
 # gene/skill-design/skill.yaml
 name: skill-design
-description: 把一个想法设计成基因合规的技能(流程/方法论型,无确定性脚本)
-when-to-use: 要新增一个技能、但还没想清楚"哪部分确定、哪部分交给 LLM、如何验收"时
+description: Design an idea into a gene-compliant skill (process/methodology type, no deterministic scripts)
+when-to-use: When you want to add a skill but haven't yet figured out which parts are deterministic, which parts to hand to the LLM, and how to evaluate it
 version: "0.1.0"
-# 流程型技能:不带确定性脚本,价值在清单 + 流程 + 红旗(对照 Superpowers 的方法论技能形态)
+# Process-type skill: no deterministic scripts; its value is the checklist + flow + red flags (a methodology-style skill)
 uses:
   mcp: []
   permissions: []

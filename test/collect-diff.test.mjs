@@ -18,16 +18,16 @@ function gitRepo() {
   return { d, run };
 }
 
-test('collectDiff 列出改动文件与 diff 文本', () => {
+test('collectDiff lists changed files and the diff text', () => {
   const { d } = gitRepo();
-  writeFileSync(join(d, 'a.txt'), 'one\ntwo\n');           // 改动
+  writeFileSync(join(d, 'a.txt'), 'one\ntwo\n');           // change
   const r = collectDiff(d, 'HEAD');
   assert.deepEqual(r.files, ['a.txt']);
   assert.match(r.diff, /\+two/);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('无改动时 files 为空', () => {
+test('files is empty when there are no changes', () => {
   const { d } = gitRepo();
   const r = collectDiff(d, 'HEAD');
   assert.deepEqual(r.files, []);

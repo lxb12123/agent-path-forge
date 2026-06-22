@@ -1,10 +1,10 @@
 # gene/pr-description/skill.yaml
 name: pr-description
-description: 把本分支相对基线的提交与改动汇总成 PR 描述(确定性取 log/diffstat + LLM 综述)
-when-to-use: 开 Pull Request 前,需要根据本分支相对基线的提交生成标题/摘要/测试计划时
+description: Summarize this branch's commits and changes relative to the base into a PR description (deterministically read log/diffstat + LLM synthesis)
+when-to-use: Before opening a Pull Request, when you need to generate a title/summary/test plan from this branch's commits relative to the base
 version: "0.1.0"
-# 自描述原语(基因⑤)
+# Self-describing primitives (gene #5)
 uses:
   mcp: []
-  permissions: ["Bash(node *)"]   # /pr-description 要跑 collect-commits.mjs
+  permissions: ["Bash(node *)"]   # /pr-description needs to run collect-commits.mjs
   subagents: []

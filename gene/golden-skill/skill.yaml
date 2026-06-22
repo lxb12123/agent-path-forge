@@ -1,10 +1,10 @@
 # gene/golden-skill/skill.yaml
 name: review
-description: 对当前改动做代码审查(确定性取 diff + LLM 评审)
-when-to-use: 提交或合并前,需要审查代码改动的正确性与质量时
+description: Review the current changes (deterministically read the diff + LLM review)
+when-to-use: Before committing or merging, when you need to review the correctness and quality of code changes
 version: "0.1.0"
-# 自描述原语(基因⑤):声明用到的能力 → 编译进 .claude SKILL.md 的 allowed-tools 与 AGENTS.md 依赖
+# Self-describing primitives (gene #5): declare the capabilities used → compiled into the allowed-tools of the .claude SKILL.md and the AGENTS.md dependencies
 uses:
   mcp: []
-  permissions: ["Bash(node *)"]   # /review 要跑 collect-diff.mjs
+  permissions: ["Bash(node *)"]   # /review needs to run collect-diff.mjs
   subagents: ["review-verifier"]

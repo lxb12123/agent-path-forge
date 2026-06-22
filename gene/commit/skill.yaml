@@ -1,10 +1,10 @@
 # gene/commit/skill.yaml
 name: commit
-description: 把已暂存的改动写成一条规范的提交信息(确定性取暂存区 + LLM 生成)
-when-to-use: 已 git add 暂存改动、准备提交、需要一条清晰的 Conventional Commits 信息时
+description: Turn the staged changes into a well-formed commit message (deterministically read the staging area + LLM generation)
+when-to-use: When changes are staged with git add, you're ready to commit, and you need a clear Conventional Commits message
 version: "0.1.0"
-# 自描述原语(基因⑤)
+# Self-describing primitives (gene #5)
 uses:
   mcp: []
-  permissions: ["Bash(node *)"]   # /commit 要跑 collect-staged.mjs
+  permissions: ["Bash(node *)"]   # /commit needs to run collect-staged.mjs
   subagents: []

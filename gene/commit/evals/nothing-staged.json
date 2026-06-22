@@ -1,5 +1,5 @@
 {
   "name": "nothing-staged",
-  "input": "暂存区没有任何改动",
-  "expect": { "contains": ["暂存区为空"] }
+  "input": "the staging area has no changes",
+  "expect": { "contains": ["the staging area is empty"] }
 }

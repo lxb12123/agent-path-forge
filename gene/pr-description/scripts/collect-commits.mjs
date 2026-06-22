@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-// 确定性取"本分支相对基线"的提交标题与改动规模,供 agent 0 token 读取。
+// Deterministically get the commit subjects and change size of "this branch relative to the baseline", for the agent to read at 0 token.
 export function collectCommits(cwd = process.cwd(), base = 'main') {
   const range = `${base}..HEAD`;
   try {
@@ -12,11 +12,11 @@ export function collectCommits(cwd = process.cwd(), base = 'main') {
     const diffstat = execFileSync('git', ['diff', '--stat', range], { cwd, encoding: 'utf8' });
     return { base, commits, diffstat };
   } catch {
-    return { base, commits: [], diffstat: '' };   // 非 git 仓库 / 基线不存在 → "无新提交",prompt 据此停下
+    return { base, commits: [], diffstat: '' };   // non-git repo / baseline missing → "no new commits"; the prompt stops on this
   }
 }
 
-// 仅当作为脚本直接运行时执行(realpath 兼容 macOS /var→/private/var 符号链接)
+// Run only when invoked directly as a script (realpath handles the macOS /var→/private/var symlink)
 function isMain() {
   try { return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]); }
   catch { return false; }

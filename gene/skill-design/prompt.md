@@ -1,43 +1,43 @@
 # /skill-design
 
-把一个模糊的想法,设计成一个**基因合规**的技能 —— 在落任何代码前先想清楚边界。
-这是一个**流程型**技能:没有确定性脚本,产出是一份可执行的设计,交给 `/inherit` 去长出来。
+Design a vague idea into a **gene-compliant** skill — think through the boundaries before writing any code.
+This is a **process-type** skill: no deterministic scripts; the output is an actionable design handed to `/inherit` to grow.
 
-宣布:"我在用 skill-design 流程来设计这个技能。"
+Announce: "I'm using the skill-design process to design this skill."
 
-## 清单(逐项做,别跳)
+## Checklist (do each item, don't skip)
 
-1. **一句话目的** —— 这个技能让 agent 做成什么?说不清就先问,别动手。
-2. **划线:确定性 ⟂ 语义**(基因①)
-   - 凡是**可重复、可断言**的(取 diff、读配置、跑命令、解析输出)→ 进 `scripts/`,0 token。
-   - 凡是需要**判断、权衡、写作**的 → 进 `prompt.md`。
-   - 如果整件事没有任何确定性部分(纯方法论),那它就是个**流程型技能**(像本技能),没有 `scripts/` 也正常。
-3. **声明用到的能力**(基因⑤)—— 在 `skill.yaml` 的 `uses` 里列 `permissions`/`mcp`/`subagents`;它们会被编译进真实宿主配置。要跑脚本就声明 `permissions: ["Bash(node *)"]`。
-4. **三层懒加载**(基因③)—— 元信息(when-to-use)要短;正文放 `prompt.md`;大块领域知识放 `reference/`,按需加载,别塞进正文。
-5. **先写验收**(evals)—— 至少一个 happy-path 用例,带 `rubric`。先问:"产出对了长什么样?"答不上来就是还没设计清楚。
-6. **红旗自检**(见下)。
-7. **交给 `/inherit`** —— 把设计交出去长成技能;它幂等、不覆盖你的文件。
+1. **One-sentence purpose** — what does this skill let the agent accomplish? If you can't state it, ask first; don't start.
+2. **Draw the line: deterministic ⟂ semantic** (gene ①)
+   - Anything **repeatable and assertable** (get a diff, read config, run a command, parse output) → goes in `scripts/`, 0 token.
+   - Anything needing **judgment, trade-offs, writing** → goes in `prompt.md`.
+   - If the whole thing has no deterministic part at all (pure methodology), then it's a **process-type skill** (like this one), and having no `scripts/` is fine.
+3. **Declare the capabilities used** (gene ⑤) — list `permissions`/`mcp`/`subagents` under `uses` in `skill.yaml`; they get compiled into the real host config. To run scripts, declare `permissions: ["Bash(node *)"]`.
+4. **Three-tier lazy loading** (gene ③) — keep the metadata (when-to-use) short; put the body in `prompt.md`; put large domain knowledge in `reference/`, loaded on demand, not stuffed into the body.
+5. **Write the acceptance first** (evals) — at least one happy-path case with a `rubric`. Ask first: "what does a correct output look like?" If you can't answer, you haven't designed it clearly yet.
+6. **Red-flag self-check** (see below).
+7. **Hand off to `/inherit`** — pass the design off to grow into a skill; it's idempotent and won't overwrite your files.
 
-## 流程
+## Flow
 
 ```
-想法
+idea
  │
- ├─ 一句话目的说得清?         否 → 先问清楚,别动手
- ├─ 切出确定性部分 → scripts/   (可重复/可断言的活儿,0 token)
- ├─ 留下判断部分   → prompt.md  (LLM 语义层)
- ├─ 声明 uses{permissions,mcp,subagents}
- ├─ 写 evals(至少 1 个带 rubric 的 happy-path)
- └─ /inherit 长出来 → 跨宿主编译
+ ├─ Can the one-sentence purpose be stated?   no → clarify first, don't start
+ ├─ Carve out the deterministic part → scripts/   (repeatable/assertable work, 0 token)
+ ├─ Leave the judgment part         → prompt.md   (LLM semantic layer)
+ ├─ Declare uses{permissions,mcp,subagents}
+ ├─ Write evals (at least 1 happy-path with a rubric)
+ └─ /inherit grows it → cross-host compilation
 ```
 
-## 红旗(出现就停下重想)
+## Red flags (stop and rethink when they appear)
 
-| 信号 | 问题 | 怎么改 |
+| Signal | Problem | How to fix |
 |---|---|---|
-| prompt 里让 LLM "数一下/解析一下/跑一下" | 确定性的活儿混进了语义层 | 挪进 `scripts/`,prompt 只读它的输出 |
-| 一个技能想干三件不相干的事 | 边界糊了 | 拆成多个技能 |
-| 说不出"产出对了长什么样" | 没有验收标准 | 先写 eval 再设计 |
-| when-to-use 写成一段话 | 元信息太重,违反懒加载 | 压成一句触发条件 |
-| 领域知识全塞进 prompt | 正文臃肿、每次全量加载 | 移到 `reference/`,按需引用 |
-| 用到 Bash/MCP 却没在 `uses` 声明 | 自描述缺失,编译不出真权限 | 在 `skill.yaml` 补 `uses` |
+| the prompt tells the LLM to "count/parse/run" something | deterministic work mixed into the semantic layer | move it into `scripts/`; the prompt only reads its output |
+| one skill tries to do three unrelated things | the boundary is blurred | split into multiple skills |
+| can't state "what a correct output looks like" | no acceptance criteria | write the eval before designing |
+| when-to-use written as a paragraph | metadata too heavy, violates lazy loading | compress it to a one-line trigger condition |
+| all domain knowledge stuffed into the prompt | bloated body, fully loaded every time | move it to `reference/`, reference on demand |
+| uses Bash/MCP but doesn't declare it in `uses` | self-description missing, can't compile real permissions | add `uses` in `skill.yaml` |

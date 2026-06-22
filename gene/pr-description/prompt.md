@@ -1,20 +1,20 @@
 <!-- gene/pr-description/prompt.md -->
-# /pr-description — 生成 PR 描述
+# /pr-description — Generate a PR description
 
-你根据"本分支相对基线"的提交,写一份清晰的 Pull Request 描述。
+You write a clear Pull Request description based on the commits of "this branch relative to the baseline".
 
-## 步骤
-1. 运行确定性脚本取提交与改动规模(0 token 推理),基线默认 `main`:
+## Steps
+1. Run the deterministic script to get the commits and change size (0-token reasoning); the baseline defaults to `main`:
    `node skills/pr-description/scripts/collect-commits.mjs main`
-   它输出 JSON:`{ base, commits: string[], diffstat: string }`。
-2. 若 `commits` 为空,提示"相对 <base> 没有新提交"并停止(或让用户换基线)。
-3. 仅在需要模板结构时,加载 `skills/pr-description/reference/pr-template.md`(基因③:按需加载)。
-4. 依据 commits 与 diffstat 输出:
-   - 标题:一句话概括本 PR;
-   - `## Summary`:2-4 条要点,说清改了什么、为什么;
-   - `## Test Plan`:可勾选的验证步骤。
-5. 整份描述放进代码块,便于直接粘贴到 PR。
+   It outputs JSON: `{ base, commits: string[], diffstat: string }`.
+2. If `commits` is empty, say "no new commits relative to <base>" and stop (or let the user switch the baseline).
+3. Only when you need the template structure, load `skills/pr-description/reference/pr-template.md` (gene ③: load on demand).
+4. Based on the commits and diffstat, output:
+   - Title: a one-sentence summary of this PR;
+   - `## Summary`: 2-4 bullet points making clear what changed and why;
+   - `## Test Plan`: checkable verification steps.
+5. Put the whole description in a code block so it can be pasted straight into the PR.
 
-## 约束
-- 只综述脚本给出的提交/改动,不要臆造未发生的变更。
-- 摘要讲动机与影响,不要逐条复述每个 commit。
+## Constraints
+- Summarize only the commits/changes the script provides; do not invent changes that did not happen.
+- The summary covers motivation and impact; do not restate every commit one by one.

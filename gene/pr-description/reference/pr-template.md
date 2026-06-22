@@ -1,14 +1,14 @@
-# PR 描述模板
+# PR description template
 
-    <标题:一句话概括本 PR>
+    <Title: a one-sentence summary of this PR>
 
     ## Summary
-    - <改了什么、为什么(2-4 条)>
+    - <what changed and why (2-4 bullets)>
 
     ## Test Plan
-    - [ ] <如何验证 1>
-    - [ ] <如何验证 2>
+    - [ ] <how to verify 1>
+    - [ ] <how to verify 2>
 
-要点:
-- 摘要面向评审者:他们最需要知道"为什么"和"风险在哪"。
-- 测试计划写成可勾选项,便于逐条核对。
+Key points:
+- The summary is for reviewers: what they most need to know is "why" and "where the risk is".
+- Write the test plan as checkable items so they can be ticked off one by one.

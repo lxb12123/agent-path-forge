@@ -17,42 +17,42 @@ function addSkill(dir, name, desc, when, prompt) {
   writeFileSync(join(s, 'prompt.md'), prompt, 'utf8');
 }
 
-test('listSkills 现在带 prompt 正文', () => {
+test('listSkills now carries the prompt body', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前', '# /review\n审查 diff');
+  addSkill(d, 'review', 'code review', 'pre-commit', '# /review\nreview the diff');
   const list = listSkills(d);
-  assert.match(list[0].prompt, /审查 diff/);
+  assert.match(list[0].prompt, /review the diff/);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('renderClaudeSkill 产出 description frontmatter + 正文', () => {
-  const md = renderClaudeSkill({ name: 'review', description: '代码审查', whenToUse: '提交前', prompt: '# /review\n审查 diff' });
+test('renderClaudeSkill produces description frontmatter + body', () => {
+  const md = renderClaudeSkill({ name: 'review', description: 'code review', whenToUse: 'pre-commit', prompt: '# /review\nreview the diff' });
   assert.match(md, /^---\n/);
-  assert.match(md, /description: 代码审查.*提交前/);
-  assert.match(md, /审查 diff/);
+  assert.match(md, /description: code review.*pre-commit/);
+  assert.match(md, /review the diff/);
 });
 
-test('compileClaudeSkills 写 .claude/skills/<name>/SKILL.md', () => {
+test('compileClaudeSkills writes .claude/skills/<name>/SKILL.md', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前', '# /review\n审查 diff');
+  addSkill(d, 'review', 'code review', 'pre-commit', '# /review\nreview the diff');
   const n = compileClaudeSkills(d);
   assert.equal(n, 1);
   const p = join(d, '.claude', 'skills', 'review', 'SKILL.md');
   assert.equal(existsSync(p), true);
-  assert.match(readFileSync(p, 'utf8'), /description: 代码审查/);
+  assert.match(readFileSync(p, 'utf8'), /description: code review/);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('renderCursorRule 含 alwaysApply:false + description + 正文', () => {
-  const md = renderCursorRule({ name: 'review', description: '代码审查', whenToUse: '提交前', prompt: '审查 diff' });
+test('renderCursorRule includes alwaysApply:false + description + body', () => {
+  const md = renderCursorRule({ name: 'review', description: 'code review', whenToUse: 'pre-commit', prompt: 'review the diff' });
   assert.match(md, /alwaysApply: false/);
-  assert.match(md, /description: 代码审查/);
-  assert.match(md, /审查 diff/);
+  assert.match(md, /description: code review/);
+  assert.match(md, /review the diff/);
 });
 
-test('compileCursorRules 写 .cursor/rules/<name>.mdc', () => {
+test('compileCursorRules writes .cursor/rules/<name>.mdc', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前', '审查 diff');
+  addSkill(d, 'review', 'code review', 'pre-commit', 'review the diff');
   const n = compileCursorRules(d);
   assert.equal(n, 1);
   const p = join(d, '.cursor', 'rules', 'review.mdc');
@@ -61,9 +61,9 @@ test('compileCursorRules 写 .cursor/rules/<name>.mdc', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('compileAll 同时产 AGENTS.md + .claude/skills + .cursor/rules, 返回技能数', () => {
+test('compileAll produces AGENTS.md + .claude/skills + .cursor/rules at once, returns skill count', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前', '审查 diff');
+  addSkill(d, 'review', 'code review', 'pre-commit', 'review the diff');
   const n = compileAll(d);
   assert.equal(n, 1);
   assert.equal(existsSync(join(d, 'AGENTS.md')), true);

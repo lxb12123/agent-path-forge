@@ -14,26 +14,26 @@ function addSkill(dir, name, desc, when) {
   writeFileSync(join(s, 'skill.yaml'), `name: ${name}\ndescription: ${desc}\nwhen-to-use: ${when}\n`, 'utf8');
 }
 
-test('listSkills 读出名称/描述/when-to-use 并排序', () => {
+test('listSkills reads name/description/when-to-use and sorts', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前审查 diff');
-  addSkill(d, 'audit', '设计审查', '检查反模式');
+  addSkill(d, 'review', 'code review', 'review the diff before commit');
+  addSkill(d, 'audit', 'design review', 'check for anti-patterns');
   const list = listSkills(d);
   assert.deepEqual(list.map((s) => s.name), ['audit', 'review']);
-  assert.equal(list[1].whenToUse, '提交前审查 diff');
+  assert.equal(list[1].whenToUse, 'review the diff before commit');
   rmSync(d, { recursive: true, force: true });
 });
 
-test('renderAgentsMd 含标题与每个技能段', () => {
-  const md = renderAgentsMd([{ name: 'review', description: '代码审查', whenToUse: '提交前审查 diff' }]);
+test('renderAgentsMd includes the title and a section per skill', () => {
+  const md = renderAgentsMd([{ name: 'review', description: 'code review', whenToUse: 'review the diff before commit' }]);
   assert.match(md, /^# AGENTS\.md/);
   assert.match(md, /### review/);
   assert.match(md, /skills\/review\//);
 });
 
-test('compileAgentsMd 写出文件且返回技能数', () => {
+test('compileAgentsMd writes the file and returns the skill count', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前审查 diff');
+  addSkill(d, 'review', 'code review', 'review the diff before commit');
   const n = compileAgentsMd(d);
   assert.equal(n, 1);
   assert.equal(existsSync(join(d, 'AGENTS.md')), true);
@@ -41,13 +41,13 @@ test('compileAgentsMd 写出文件且返回技能数', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('listSkills 跳过没有 skill.yaml 的目录', () => {
+test('listSkills skips directories without skill.yaml', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', 'x');
-  mkdirSync(join(d, 'skills', 'not-a-skill'), { recursive: true });  // 杂目录,无 skill.yaml
+  addSkill(d, 'review', 'code review', 'x');
+  mkdirSync(join(d, 'skills', 'not-a-skill'), { recursive: true });  // stray directory, no skill.yaml
   const list = listSkills(d);
-  assert.deepEqual(list.map((s) => s.name), ['review']);             // 杂目录被忽略
-  const n = compileAgentsMd(d);                                       // 不崩溃
+  assert.deepEqual(list.map((s) => s.name), ['review']);             // stray directory is ignored
+  const n = compileAgentsMd(d);                                       // does not crash
   assert.equal(n, 1);
   rmSync(d, { recursive: true, force: true });
 });

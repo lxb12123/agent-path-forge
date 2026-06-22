@@ -1,5 +1,5 @@
 {
   "name": "no-commits",
-  "input": "相对 main 没有任何新提交",
-  "expect": { "contains": ["没有新提交"] }
+  "input": "no new commits relative to main",
+  "expect": { "contains": ["no new commits"] }
 }

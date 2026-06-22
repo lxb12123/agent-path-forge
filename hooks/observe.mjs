@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// hooks/observe.mjs — 被动观测 hook(PostToolUse / PostToolUseFailure)。
-// 读 stdin 的 hook JSON,规范化后追加到 ${CLAUDE_PROJECT_DIR}/.gene/trace.jsonl。
-// 非 gene 项目立即 no-op;永远 exit 0,绝不干扰 agent。
+// hooks/observe.mjs — passive observation hook (PostToolUse / PostToolUseFailure).
+// Reads the hook JSON from stdin, normalizes it, and appends to ${CLAUDE_PROJECT_DIR}/.gene/trace.jsonl.
+// No-ops immediately for non-gene projects; always exits 0, never interferes with the agent.
 import { recordEvent, parseHookEvent } from '../lib/trace.mjs';
 
 async function main() {

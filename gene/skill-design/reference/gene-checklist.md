@@ -1,18 +1,18 @@
-# 基因合规速查(按需加载)
+# Gene-compliance cheat sheet (load on demand)
 
-设计一个技能时,对照这五条基因 —— 每条都该能指到技能里的某个具体位置。
+When designing a skill, check it against these five genes — each one should point to a concrete location in the skill.
 
-| # | 基因 | 落在哪 | 自检问题 |
+| # | Gene | Where it lives | Self-check question |
 |---|------|--------|----------|
-| ① | 确定性 ⟂ 语义 | `scripts/`(确定)⟂ `prompt.md`(判断) | 有没有让 LLM 干本该脚本干的活? |
-| ② | 跨宿主 + 开放标准 | 一份源 → `AGENTS.md` + Claude `SKILL.md` + Cursor `.mdc` | 有没有写死某一个 IDE? |
-| ③ | 三层懒加载 | 元信息 → `prompt.md` → `reference/` | 大块知识是不是塞进了正文? |
-| ④ | 可提交产物 | `GENE.md`(配置)⟂ `MEMORY.md`(记忆) | 配置/记忆是不是落在仓库里、可提交? |
-| ⑤ | 自描述原语 | `skill.yaml` 的 `uses:` → 真权限 | 用到的能力都声明了吗? |
+| ① | deterministic ⟂ semantic | `scripts/` (deterministic) ⟂ `prompt.md` (judgment) | Is the LLM doing work that a script should do? |
+| ② | cross-host + open standards | one source → `AGENTS.md` + Claude `SKILL.md` + Cursor `.mdc` | Is anything hardcoded to a single IDE? |
+| ③ | three-tier lazy loading | metadata → `prompt.md` → `reference/` | Is large knowledge stuffed into the body? |
+| ④ | committable artifacts | `GENE.md` (config) ⟂ `MEMORY.md` (memory) | Do config/memory live in the repo and stay committable? |
+| ⑤ | self-describing primitives | `skill.yaml`'s `uses:` → real permissions | Are all the capabilities used declared? |
 
-## 技能类型
+## Skill types
 
-- **确定性取数 + LLM 型**:有 `scripts/`(取 diff、读状态、跑命令)+ `prompt.md`(评判/写作)。例:review、commit、pr-description。
-- **流程 / 方法论型**:没有 `scripts/`,价值在清单 + 流程 + 红旗。例:本 skill-design。
+- **Deterministic-fetch + LLM type**: has `scripts/` (get a diff, read state, run a command) + `prompt.md` (judging/writing). E.g. review, commit, pr-description.
+- **Process / methodology type**: no `scripts/`; the value is in the checklist + flow + red flags. E.g. this skill-design.
 
-两类都合规;关键是 ①——把"能确定的"和"要判断的"分清楚,别混。
+Both types are compliant; the key is ① — keep "what can be made deterministic" and "what requires judgment" clearly separated, not mixed.

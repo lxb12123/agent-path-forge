@@ -3,28 +3,28 @@
   "skills": [
     {
       "name": "review",
-      "description": "对当前改动做代码审查(确定性取 diff + LLM 评审)",
+      "description": "Code-review the current changes (deterministically grab the diff + LLM review)",
       "version": "0.1.0",
       "source": "gene/golden-skill",
       "dependencies": []
     },
     {
       "name": "commit",
-      "description": "把已暂存的改动写成一条规范的提交信息(确定性取暂存区 + LLM 生成)",
+      "description": "Turn the staged changes into a well-formed commit message (deterministically grab the staging area + LLM generation)",
       "version": "0.1.0",
       "source": "gene/commit",
       "dependencies": []
     },
     {
       "name": "pr-description",
-      "description": "把本分支相对基线的提交与改动汇总成 PR 描述(确定性取 log/diffstat + LLM 综述)",
+      "description": "Summarize this branch's commits and changes against the baseline into a PR description (deterministically grab log/diffstat + LLM synthesis)",
       "version": "0.1.0",
       "source": "gene/pr-description",
       "dependencies": []
     },
     {
       "name": "skill-design",
-      "description": "把一个想法设计成基因合规的技能(流程/方法论型,无确定性脚本)",
+      "description": "Design an idea into a gene-compliant skill (process/methodology type, no deterministic scripts)",
       "version": "0.1.0",
       "source": "gene/skill-design",
       "dependencies": []

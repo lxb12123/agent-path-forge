@@ -14,7 +14,7 @@ function makeSkill(dir, body) {
   writeFileSync(join(dir, 'scripts', 'x.mjs'), body, 'utf8');
 }
 
-test('首次安装: changed=true, 文件被复制', () => {
+test('first install: changed=true, files are copied', () => {
   const src = tmp(); const dst = tmp();
   makeSkill(src, 'export const v = 1;');
   const r = installSkill(dst, src, 'demo');
@@ -24,7 +24,7 @@ test('首次安装: changed=true, 文件被复制', () => {
   rmSync(src, { recursive: true, force: true }); rmSync(dst, { recursive: true, force: true });
 });
 
-test('重装相同内容: changed=false(幂等)', () => {
+test('reinstalling identical content: changed=false (idempotent)', () => {
   const src = tmp(); const dst = tmp();
   makeSkill(src, 'export const v = 1;');
   installSkill(dst, src, 'demo');
@@ -33,7 +33,7 @@ test('重装相同内容: changed=false(幂等)', () => {
   rmSync(src, { recursive: true, force: true }); rmSync(dst, { recursive: true, force: true });
 });
 
-test('源内容变化则指纹变化', () => {
+test('changed source content changes the fingerprint', () => {
   const a = tmp(); const b = tmp();
   makeSkill(a, 'export const v = 1;');
   makeSkill(b, 'export const v = 2;');
@@ -41,17 +41,17 @@ test('源内容变化则指纹变化', () => {
   rmSync(a, { recursive: true, force: true }); rmSync(b, { recursive: true, force: true });
 });
 
-test('重装时源删了文件: 目标不残留旧文件', () => {
+test('when a file is deleted from the source on reinstall: the target leaves no stale files', () => {
   const src = tmp(); const dst = tmp();
   mkdirSync(join(src, 'scripts'), { recursive: true });
   writeFileSync(join(src, 'skill.yaml'), 'name: demo\n', 'utf8');
   writeFileSync(join(src, 'scripts', 'a.mjs'), 'a', 'utf8');
   writeFileSync(join(src, 'scripts', 'b.mjs'), 'b', 'utf8');
   installSkill(dst, src, 'demo');
-  rmSync(join(src, 'scripts', 'b.mjs'));                 // 源删掉 b
-  writeFileSync(join(src, 'scripts', 'a.mjs'), 'a2', 'utf8'); // 改 a → 指纹变化触发重装
+  rmSync(join(src, 'scripts', 'b.mjs'));                 // delete b from the source
+  writeFileSync(join(src, 'scripts', 'a.mjs'), 'a2', 'utf8'); // change a → fingerprint change triggers reinstall
   const r = installSkill(dst, src, 'demo');
   assert.equal(r.changed, true);
-  assert.equal(existsSync(join(dst, 'skills', 'demo', 'scripts', 'b.mjs')), false); // 旧文件没了
+  assert.equal(existsSync(join(dst, 'skills', 'demo', 'scripts', 'b.mjs')), false); // the stale file is gone
   rmSync(src, { recursive: true, force: true }); rmSync(dst, { recursive: true, force: true });
 });

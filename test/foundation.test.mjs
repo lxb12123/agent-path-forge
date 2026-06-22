@@ -9,7 +9,7 @@ import { hasGene } from '../lib/manifest.mjs';
 
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-')); }
 
-test('首次刻地基: stamped=true, 生成 .gene 与 GENE.md', () => {
+test('first foundation stamp: stamped=true, creates .gene and GENE.md', () => {
   const d = tmp();
   const r = stampFoundation(d);
   assert.equal(r.stamped, true);
@@ -18,12 +18,12 @@ test('首次刻地基: stamped=true, 生成 .gene 与 GENE.md', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('已存在地基则幂等: stamped=false, 不覆盖 GENE.md', () => {
+test('existing foundation is idempotent: stamped=false, does not overwrite GENE.md', () => {
   const d = tmp();
   stampFoundation(d);
-  writeFileSync(join(d, 'GENE.md'), 'USER EDIT', 'utf8');   // 用户改了
+  writeFileSync(join(d, 'GENE.md'), 'USER EDIT', 'utf8');   // user edited it
   const r2 = stampFoundation(d);
   assert.equal(r2.stamped, false);
-  assert.equal(readFileSync(join(d, 'GENE.md'), 'utf8'), 'USER EDIT'); // 不被覆盖
+  assert.equal(readFileSync(join(d, 'GENE.md'), 'utf8'), 'USER EDIT'); // not overwritten
   rmSync(d, { recursive: true, force: true });
 });

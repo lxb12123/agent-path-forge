@@ -1,4 +1,4 @@
-// test/self-describe.test.mjs — 基因⑤:uses 自描述块编译出真效果
+// test/self-describe.test.mjs — gene #5: the uses self-describing block compiles to real effects
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -18,7 +18,7 @@ function addSkill(dir, name, uses) {
   writeFileSync(join(s, 'prompt.md'), 'body', 'utf8');
 }
 
-test('listSkills 带出 uses 自描述块', () => {
+test('listSkills surfaces the uses self-describing block', () => {
   const d = tmp(); addSkill(d, 'review', { permissions: ['Bash(node *)'] });
   assert.deepEqual(listSkills(d)[0].uses.permissions, ['Bash(node *)']);
   rmSync(d, { recursive: true, force: true });
@@ -30,12 +30,12 @@ test('renderClaudeSkill: uses.permissions → allowed-tools frontmatter', () => 
   assert.match(md, /Bash\(node \*\)/);
 });
 
-test('renderClaudeSkill: 无 permissions 不加 allowed-tools', () => {
+test('renderClaudeSkill: no permissions means no allowed-tools', () => {
   const md = renderClaudeSkill({ name: 'x', description: 'd', whenToUse: 'w', prompt: 'b', uses: { permissions: [], mcp: [], subagents: [] } });
   assert.doesNotMatch(md, /allowed-tools:/);
 });
 
-test('renderAgentsMd: 非空 uses 被列为依赖', () => {
+test('renderAgentsMd: non-empty uses are listed as dependencies', () => {
   const md = renderAgentsMd([{ name: 'review', description: 'd', whenToUse: 'w', uses: { permissions: ['Bash(node *)'], mcp: ['agent-path-forge-diagnostics'], subagents: [] } }]);
   assert.match(md, /agent-path-forge-diagnostics/);
   assert.match(md, /Bash\(node \*\)/);

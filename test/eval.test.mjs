@@ -10,7 +10,7 @@ function tmp() { return mkdtempSync(join(tmpdir(), 'mh-')); }
 
 test('gradeOutput: contains / notContains / matches', () => {
   assert.deepEqual(
-    gradeOutput('has blocker and null', { contains: ['blocker'], matches: ['null|空'] }),
+    gradeOutput('has blocker and null', { contains: ['blocker'], matches: ['null|empty'] }),
     { pass: true, failures: [] },
   );
   const bad = gradeOutput('clean', { contains: ['blocker'], notContains: ['clean'] });
@@ -18,7 +18,7 @@ test('gradeOutput: contains / notContains / matches', () => {
   assert.equal(bad.failures.length, 2);
 });
 
-test('loadCases 读 evals/*.json 并按名排序', () => {
+test('loadCases reads evals/*.json and sorts by name', () => {
   const d = tmp();
   mkdirSync(join(d, 'evals'), { recursive: true });
   writeFileSync(join(d, 'evals', 'b.json'), JSON.stringify({ name: 'b', input: 'x', expect: {} }), 'utf8');
@@ -27,18 +27,18 @@ test('loadCases 读 evals/*.json 并按名排序', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('loadCases: 无 evals 目录返回空数组', () => {
+test('loadCases: returns an empty array when there is no evals directory', () => {
   const d = tmp();
   assert.deepEqual(loadCases(d), []);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('summarize 统计 total/passed/failed', () => {
+test('summarize tallies total/passed/failed', () => {
   assert.deepEqual(summarize([{ pass: true }, { pass: false }, { pass: true }]),
     { total: 3, passed: 2, failed: 1 });
 });
 
-test('runEval: 按用例对收集的输出判分', () => {
+test('runEval: grades collected outputs per case', () => {
   const d = tmp();
   mkdirSync(join(d, 'evals'), { recursive: true });
   writeFileSync(join(d, 'evals', 'ok.json'),

@@ -1,20 +1,20 @@
 <!-- gene/commit/prompt.md -->
-# /commit — 生成提交信息
+# /commit — Generate a commit message
 
-你帮用户把"已暂存"的改动写成一条规范的 Conventional Commits 提交信息。
+You help the user turn the "staged" changes into a well-formed Conventional Commits message.
 
-## 步骤
-1. 运行确定性脚本取暂存区(0 token 推理):
+## Steps
+1. Run the deterministic script to get the staging area (0-token reasoning):
    `node skills/commit/scripts/collect-staged.mjs`
-   它输出 JSON:`{ files: string[], diff: string, status: string }`。
-2. 若 `files` 为空,提示"暂存区为空,请先 git add 要提交的改动"并停止。
-3. 仅在需要拿捏 type/scope 时,加载 `skills/commit/reference/commit-convention.md`(基因③:按需加载)。
-4. 依据 `diff` 写一条提交信息:
-   - 标题:`<type>(<scope>): <简短祈使句>`,≤ 72 字符;
-   - 必要时空一行后写正文,解释"为什么"而非逐行复述 diff;
-   - 只看 `--cached`,不要把未暂存的改动写进信息。
-5. 输出最终提交信息(放进代码块),并附一行可直接执行的 `git commit -m ...`。
+   It outputs JSON: `{ files: string[], diff: string, status: string }`.
+2. If `files` is empty, say "the staging area is empty; please git add the changes you want to commit first" and stop.
+3. Only when you need to pin down type/scope, load `skills/commit/reference/commit-convention.md` (gene ③: load on demand).
+4. Based on the `diff`, write one commit message:
+   - Subject: `<type>(<scope>): <short imperative>`, ≤ 72 characters;
+   - If needed, leave a blank line then write the body, explaining "why" rather than restating the diff line by line;
+   - Look only at `--cached`; do not put unstaged changes into the message.
+5. Output the final commit message (in a code block), plus a one-line, directly runnable `git commit -m ...`.
 
-## 约束
-- 只依据暂存区的 diff;改了哪些文件用脚本结果,不要猜。
-- 一次只描述一个逻辑改动;若 diff 混杂多个无关改动,提示用户分开提交。
+## Constraints
+- Base it only on the staged diff; for which files changed, use the script results — do not guess.
+- Describe only one logical change at a time; if the diff mixes several unrelated changes, advise the user to commit them separately.

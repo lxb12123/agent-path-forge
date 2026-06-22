@@ -1,8 +1,8 @@
 <!-- gene/golden-skill/reference/review-standards.md -->
-# 审查标准(按需加载)
+# Review standards (load on demand)
 
-- **正确性**:边界条件、空值、错误处理、并发/竞态。
-- **安全**:注入、越权、密钥硬编码、不可信输入。
-- **可读性**:命名、函数长度、重复(DRY)。
-- **测试**:改动是否有对应测试;断言是否有意义。
-- **严重度**:blocker(必须改)/ warning(应改)/ nit(可选)。
+- **Correctness**: boundary conditions, null values, error handling, concurrency/races.
+- **Security**: injection, privilege escalation, hardcoded secrets, untrusted input.
+- **Readability**: naming, function length, duplication (DRY).
+- **Testing**: do the changes have matching tests; are the assertions meaningful.
+- **Severity**: blocker (must fix) / warning (should fix) / nit (optional).

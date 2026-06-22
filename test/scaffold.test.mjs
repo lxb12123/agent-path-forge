@@ -11,7 +11,7 @@ import { readManifest } from '../lib/manifest.mjs';
 
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-')); }
 
-test('scaffoldSkill 生成合规骨架(skill.yaml 带 name + uses + when-to-use, 还有 prompt.md)', () => {
+test('scaffoldSkill generates a compliant scaffold (skill.yaml with name + uses + when-to-use, plus prompt.md)', () => {
   const d = tmp();
   scaffoldSkill(d, 'changelog');
   assert.equal(existsSync(join(d, 'skill.yaml')), true);
@@ -24,7 +24,7 @@ test('scaffoldSkill 生成合规骨架(skill.yaml 带 name + uses + when-to-use,
   rmSync(d, { recursive: true, force: true });
 });
 
-test('scaffold 出的骨架能被 inherit 安装成合规技能', () => {
+test('a scaffolded skeleton can be installed by inherit into a compliant skill', () => {
   const src = tmp(); const proj = tmp();
   scaffoldSkill(src, 'changelog');
   const r = inherit(proj, { name: 'changelog', from: src });

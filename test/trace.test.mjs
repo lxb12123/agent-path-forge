@@ -8,12 +8,12 @@ import { parseHookEvent, inferSkill, recordEvent, loadTrace, summarizeTrace } fr
 
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-')); }
 
-test('inferSkill 从命令里抽 skills/<name>/', () => {
+test('inferSkill extracts skills/<name>/ from the command', () => {
   assert.equal(inferSkill('node skills/review/scripts/collect-diff.mjs HEAD'), 'review');
   assert.equal(inferSkill('npm test'), null);
 });
 
-test('parseHookEvent 规范化 PostToolUse / 失败事件', () => {
+test('parseHookEvent normalizes PostToolUse / failure events', () => {
   const ev = parseHookEvent({
     hook_event_name: 'PostToolUse', session_id: 's1', tool_name: 'Bash',
     tool_input: { command: 'node skills/review/scripts/collect-diff.mjs' },
@@ -25,9 +25,9 @@ test('parseHookEvent 规范化 PostToolUse / 失败事件', () => {
   assert.equal(fail.ok, false);
 });
 
-test('recordEvent: 无 .gene 不记录; 有 .gene 追加并忽略 trace', () => {
+test('recordEvent: no .gene means no recording; with .gene it appends and ignores trace', () => {
   const noGene = tmp();
-  assert.equal(recordEvent(noGene, { tool: 'Bash', ok: true }, 'T'), null);   // 非 gene → null
+  assert.equal(recordEvent(noGene, { tool: 'Bash', ok: true }, 'T'), null);   // not a gene project → null
   const proj = tmp();
   mkdirSync(join(proj, '.gene'), { recursive: true });
   recordEvent(proj, parseHookEvent({
@@ -43,7 +43,7 @@ test('recordEvent: 无 .gene 不记录; 有 .gene 追加并忽略 trace', () => 
   rmSync(noGene, { recursive: true, force: true }); rmSync(proj, { recursive: true, force: true });
 });
 
-test('summarizeTrace 按工具/技能计数 + 失败数', () => {
+test('summarizeTrace counts by tool/skill + failure count', () => {
   const s = summarizeTrace([
     { tool: 'Bash', skill: 'review', ok: true },
     { tool: 'Bash', skill: 'review', ok: false },

@@ -1,4 +1,4 @@
-// test/subagents.test.mjs — 子 agent 编译到 .claude/agents/
+// test/subagents.test.mjs — subagents compiled into .claude/agents/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
@@ -15,9 +15,9 @@ function addSkillWithSub(dir, name, agentFile, agentBody) {
   writeFileSync(join(skillDir, 'subagents', agentFile), agentBody, 'utf8');
 }
 
-test('compileSubagents 把技能 subagents/*.md 编译到 .claude/agents/(技能名命名空间)', () => {
+test('compileSubagents compiles a skill\'s subagents/*.md into .claude/agents/ (namespaced by skill name)', () => {
   const d = tmp();
-  addSkillWithSub(d, 'review', 'verifier.md', '---\nname: review-verifier\ndescription: 复核\n---\nbody');
+  addSkillWithSub(d, 'review', 'verifier.md', '---\nname: review-verifier\ndescription: re-review\n---\nbody');
   assert.equal(compileSubagents(d), 1);
   const p = join(d, '.claude', 'agents', 'review-verifier.md');
   assert.equal(existsSync(p), true);
@@ -25,7 +25,7 @@ test('compileSubagents 把技能 subagents/*.md 编译到 .claude/agents/(技能
   rmSync(d, { recursive: true, force: true });
 });
 
-test('无 subagents 目录不报错, 返回 0', () => {
+test('no subagents directory does not error, returns 0', () => {
   const d = tmp();
   const s = join(d, 'skills', 'x'); mkdirSync(s, { recursive: true });
   writeFileSync(join(s, 'skill.yaml'), 'name: x\ndescription: d\n', 'utf8');
@@ -33,9 +33,9 @@ test('无 subagents 目录不报错, 返回 0', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('compileAll 也产出 .claude/agents', () => {
+test('compileAll also produces .claude/agents', () => {
   const d = tmp();
-  addSkillWithSub(d, 'review', 'verifier.md', '---\nname: review-verifier\ndescription: 复核\n---\nbody');
+  addSkillWithSub(d, 'review', 'verifier.md', '---\nname: review-verifier\ndescription: re-review\n---\nbody');
   compileAll(d);
   assert.equal(existsSync(join(d, '.claude', 'agents', 'review-verifier.md')), true);
   rmSync(d, { recursive: true, force: true });

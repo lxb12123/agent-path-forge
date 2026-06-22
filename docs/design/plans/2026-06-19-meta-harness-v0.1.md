@@ -2,39 +2,39 @@
 
 > **For agentic workers:** implement this plan task-by-task (one task at a time, review between tasks). Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 做出一个能用一条幂等命令 `/inherit` 把"基因地基"刻进任意项目、并长出一个基因合规技能(黄金技能 `/review`)、再编译出 `AGENTS.md` 的最小可用 Claude Code 插件。
+**Goal:** Build a minimal, usable Claude Code plugin that, with a single idempotent command `/inherit`, stamps a "gene foundation" into any project, grows a gene-compliant skill (the golden skill `/review`), and then compiles an `AGENTS.md`.
 
-**Architecture:** 插件 = Markdown 命令/技能(Claude Code 本身即引擎)+ 一个可独立测试的 Node.js 确定性引擎(`lib/`)。命令提示词 `commands/inherit.md` 指挥 agent 调用 `lib/cli.mjs` 完成"检测→刻地基(幂等)→装技能(指纹幂等)→编译 AGENTS.md"。黄金技能 `/review` 自带确定性 `scripts/collect-diff.mjs`(取 git diff,0 token)+ `prompt.md`(LLM 审查),一次证明 5 条基因。
+**Architecture:** Plugin = Markdown commands/skills (Claude Code itself is the engine) + a separately testable Node.js deterministic engine (`lib/`). The command prompt `commands/inherit.md` directs the agent to call `lib/cli.mjs` to perform "detect → stamp foundation (idempotent) → install skill (fingerprint-idempotent) → compile AGENTS.md". The golden skill `/review` ships with a deterministic `scripts/collect-diff.mjs` (collects the git diff, 0 tokens) + `prompt.md` (LLM review), proving all 5 genes in one shot.
 
-**Tech Stack:** Node.js ≥18(ESM)· 测试用内置 `node:test` + `node:assert/strict`(`node --test`)· 唯一运行时依赖 `js-yaml` · git。
+**Tech Stack:** Node.js ≥18 (ESM) · tests use the built-in `node:test` + `node:assert/strict` (`node --test`) · the only runtime dependency is `js-yaml` · git.
 
-**Spec:** `docs/design/specs/2026-06-19-meta-harness-gene-plugin-design.md`(§9 为本计划验收基准)
+**Spec:** `docs/design/specs/2026-06-19-meta-harness-gene-plugin-design.md` (§9 is the acceptance baseline for this plan)
 
 ---
 
 ## File Structure
 
 ```
-Meta-Harness/                         # 插件仓库根(= 当前工作目录)
-├── package.json                      # Node ESM 项目 + js-yaml + test 脚本
-├── plugin.json                       # Claude Code 插件清单
+Meta-Harness/                         # Plugin repo root (= current working directory)
+├── package.json                      # Node ESM project + js-yaml + test script
+├── plugin.json                       # Claude Code plugin manifest
 ├── commands/
-│   └── inherit.md                    # /inherit 元命令(提示词,指挥 agent 调 lib/cli.mjs)
+│   └── inherit.md                    # /inherit meta-command (prompt; directs the agent to call lib/cli.mjs)
 ├── gene/
-│   └── golden-skill/                 # 黄金技能 /review(DNA 种子,被 /inherit 复制)
-│       ├── skill.yaml                # 元信息 + when-to-use + 自描述字段
-│       ├── prompt.md                 # LLM 审查指令
+│   └── golden-skill/                 # Golden skill /review (DNA seed, copied by /inherit)
+│       ├── skill.yaml                # Metadata + when-to-use + self-describing fields
+│       ├── prompt.md                 # LLM review instructions
 │       ├── reference/
-│       │   └── review-standards.md   # 审查规范(按需加载)
+│       │   └── review-standards.md   # Review standards (loaded on demand)
 │       └── scripts/
-│           └── collect-diff.mjs      # 确定性:git diff + 改动文件(0 token)
-├── lib/                              # 确定性引擎(TDD 的核心)
-│   ├── fingerprint.mjs               # 内容指纹(sha256)
-│   ├── manifest.mjs                  # .gene/gene.yaml 读写 + hasGene + upsertSkill
-│   ├── foundation.mjs                # 幂等刻地基
-│   ├── skill-install.mjs             # 指纹幂等地装技能
+│           └── collect-diff.mjs      # Deterministic: git diff + changed files (0 tokens)
+├── lib/                              # Deterministic engine (the heart of TDD)
+│   ├── fingerprint.mjs               # Content fingerprint (sha256)
+│   ├── manifest.mjs                  # .gene/gene.yaml read/write + hasGene + upsertSkill
+│   ├── foundation.mjs                # Idempotent foundation stamping
+│   ├── skill-install.mjs             # Fingerprint-idempotent skill install
 │   ├── compiler.mjs                  # skills/ → AGENTS.md
-│   └── cli.mjs                       # inherit 编排 + 命令行入口
+│   └── cli.mjs                       # inherit orchestration + command-line entry point
 └── test/
     ├── fingerprint.test.mjs
     ├── manifest.test.mjs
@@ -43,25 +43,25 @@ Meta-Harness/                         # 插件仓库根(= 当前工作目录)
     ├── compiler.test.mjs
     ├── cli.test.mjs
     ├── collect-diff.test.mjs
-    └── acceptance.test.mjs           # §9 端到端验收
+    └── acceptance.test.mjs           # §9 end-to-end acceptance
 ```
 
-**数据形状(全计划一致):**
-- `gene.yaml`(解析为对象):`{ geneVersion: "0.1.0", skills: [ { name: string, fingerprint: string } ] }`
-- 指纹:对目录内所有文件 `相对路径:内容` 排序拼接后取 sha256 前 16 位。
-- `installSkill` 返回:`{ name, fingerprint, changed }`
-- `inherit` 返回:`{ stamped: boolean, skill: {name,fingerprint,changed}, compiledSkills: number }`
+**Data shapes (consistent across the whole plan):**
+- `gene.yaml` (parsed as an object): `{ geneVersion: "0.1.0", skills: [ { name: string, fingerprint: string } ] }`
+- Fingerprint: for every file in the directory, sort and concatenate `relativePath:content`, then take the first 16 hex chars of its sha256.
+- `installSkill` returns: `{ name, fingerprint, changed }`
+- `inherit` returns: `{ stamped: boolean, skill: {name,fingerprint,changed}, compiledSkills: number }`
 
 ---
 
-## Task 0: 项目脚手架
+## Task 0: Project scaffolding
 
 **Files:**
 - Create: `package.json`
 - Create: `plugin.json`
 - Create: `.gitignore`
 
-- [ ] **Step 1: 初始化 git 仓库**
+- [ ] **Step 1: Initialize the git repository**
 
 Run:
 ```bash
@@ -69,13 +69,13 @@ cd /Users/lixibin/Desktop/Meta-Harness && git init
 ```
 Expected: `Initialized empty Git repository ...`
 
-- [ ] **Step 2: 写 `package.json`**
+- [ ] **Step 2: Write `package.json`**
 
 ```json
 {
   "name": "meta-harness",
   "version": "0.1.0",
-  "description": "Agent 原生基因插件:一条幂等命令把好架构基因刻进任意项目",
+  "description": "Agent-native gene plugin: one idempotent command stamps good-architecture genes into any project",
   "type": "module",
   "license": "MIT",
   "bin": { "meta-harness": "lib/cli.mjs" },
@@ -88,24 +88,24 @@ Expected: `Initialized empty Git repository ...`
 }
 ```
 
-- [ ] **Step 3: 写 `plugin.json`(Claude Code 插件清单)**
+- [ ] **Step 3: Write `plugin.json` (Claude Code plugin manifest)**
 
 ```json
 {
   "name": "meta-harness",
   "version": "0.1.0",
-  "description": "把好架构基因刻进任意项目;一句话长出基因合规技能",
+  "description": "Stamp good-architecture genes into any project; grow a gene-compliant skill in one sentence",
   "commands": ["commands/inherit.md"]
 }
 ```
 
-- [ ] **Step 4: 写 `.gitignore`**
+- [ ] **Step 4: Write `.gitignore`**
 
 ```
 node_modules/
 ```
 
-- [ ] **Step 5: 安装依赖并冒烟**
+- [ ] **Step 5: Install dependencies and smoke-test**
 
 Run:
 ```bash
@@ -122,13 +122,13 @@ git commit -m "chore: scaffold meta-harness plugin (node esm + js-yaml)"
 
 ---
 
-## Task 1: 内容指纹 `lib/fingerprint.mjs`
+## Task 1: Content fingerprint `lib/fingerprint.mjs`
 
 **Files:**
 - Create: `lib/fingerprint.mjs`
 - Test: `test/fingerprint.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: Write the failing test**
 
 ```javascript
 // test/fingerprint.test.mjs
@@ -136,25 +136,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { hashContent } from '../lib/fingerprint.mjs';
 
-test('hashContent 稳定且同输入同输出', () => {
+test('hashContent is stable: same input, same output', () => {
   assert.equal(hashContent('hello'), hashContent('hello'));
 });
 
-test('hashContent 不同输入不同输出', () => {
+test('hashContent: different input, different output', () => {
   assert.notEqual(hashContent('hello'), hashContent('world'));
 });
 
-test('hashContent 返回 16 位十六进制', () => {
+test('hashContent returns 16 hex chars', () => {
   assert.match(hashContent('x'), /^[0-9a-f]{16}$/);
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/fingerprint.test.mjs`
-Expected: FAIL（`Cannot find module '../lib/fingerprint.mjs'`）
+Expected: FAIL (`Cannot find module '../lib/fingerprint.mjs'`)
 
-- [ ] **Step 3: 写实现**
+- [ ] **Step 3: Write the implementation**
 
 ```javascript
 // lib/fingerprint.mjs
@@ -165,10 +165,10 @@ export function hashContent(content) {
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/fingerprint.test.mjs`
-Expected: PASS（3 个测试通过）
+Expected: PASS (3 tests pass)
 
 - [ ] **Step 5: Commit**
 
@@ -179,13 +179,13 @@ git commit -m "feat: content fingerprint (sha256/16)"
 
 ---
 
-## Task 2: 清单读写 `lib/manifest.mjs`
+## Task 2: Manifest read/write `lib/manifest.mjs`
 
 **Files:**
 - Create: `lib/manifest.mjs`
 - Test: `test/manifest.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: Write the failing test**
 
 ```javascript
 // test/manifest.test.mjs
@@ -200,14 +200,14 @@ import {
 
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-')); }
 
-test('空项目 hasGene=false, readManifest=null', () => {
+test('empty project: hasGene=false, readManifest=null', () => {
   const d = tmp();
   assert.equal(hasGene(d), false);
   assert.equal(readManifest(d), null);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('写入后可读回, hasGene=true', () => {
+test('after writing it reads back, hasGene=true', () => {
   const d = tmp();
   writeManifest(d, emptyManifest());
   assert.equal(hasGene(d), true);
@@ -217,23 +217,23 @@ test('写入后可读回, hasGene=true', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('upsertSkill 新增并按名排序, 同名覆盖', () => {
+test('upsertSkill adds and sorts by name, overwrites same name', () => {
   let m = emptyManifest();
   m = upsertSkill(m, 'review', 'aaa');
   m = upsertSkill(m, 'audit', 'bbb');
   assert.deepEqual(m.skills.map(s => s.name), ['audit', 'review']);
-  m = upsertSkill(m, 'review', 'ccc');                 // 覆盖
+  m = upsertSkill(m, 'review', 'ccc');                 // overwrite
   assert.equal(m.skills.find(s => s.name === 'review').fingerprint, 'ccc');
-  assert.equal(m.skills.length, 2);                    // 不重复
+  assert.equal(m.skills.length, 2);                    // no duplicates
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/manifest.test.mjs`
-Expected: FAIL（找不到模块）
+Expected: FAIL (module not found)
 
-- [ ] **Step 3: 写实现**
+- [ ] **Step 3: Write the implementation**
 
 ```javascript
 // lib/manifest.mjs
@@ -273,10 +273,10 @@ export function upsertSkill(manifest, name, fingerprint) {
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/manifest.test.mjs`
-Expected: PASS（3 个测试通过）
+Expected: PASS (3 tests pass)
 
 - [ ] **Step 5: Commit**
 
@@ -287,13 +287,13 @@ git commit -m "feat: .gene/gene.yaml manifest read/write + upsertSkill"
 
 ---
 
-## Task 3: 幂等刻地基 `lib/foundation.mjs`
+## Task 3: Idempotent foundation stamping `lib/foundation.mjs`
 
 **Files:**
 - Create: `lib/foundation.mjs`
 - Test: `test/foundation.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: Write the failing test**
 
 ```javascript
 // test/foundation.test.mjs
@@ -307,7 +307,7 @@ import { hasGene } from '../lib/manifest.mjs';
 
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-')); }
 
-test('首次刻地基: stamped=true, 生成 .gene 与 GENE.md', () => {
+test('first stamp: stamped=true, creates .gene and GENE.md', () => {
   const d = tmp();
   const r = stampFoundation(d);
   assert.equal(r.stamped, true);
@@ -316,23 +316,23 @@ test('首次刻地基: stamped=true, 生成 .gene 与 GENE.md', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('已存在地基则幂等: stamped=false, 不覆盖 GENE.md', () => {
+test('idempotent when foundation exists: stamped=false, does not overwrite GENE.md', () => {
   const d = tmp();
   stampFoundation(d);
-  writeFileSync(join(d, 'GENE.md'), 'USER EDIT', 'utf8');   // 用户改了
+  writeFileSync(join(d, 'GENE.md'), 'USER EDIT', 'utf8');   // user edited it
   const r2 = stampFoundation(d);
   assert.equal(r2.stamped, false);
-  assert.equal(readFileSync(join(d, 'GENE.md'), 'utf8'), 'USER EDIT'); // 不被覆盖
+  assert.equal(readFileSync(join(d, 'GENE.md'), 'utf8'), 'USER EDIT'); // not overwritten
   rmSync(d, { recursive: true, force: true });
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/foundation.test.mjs`
-Expected: FAIL（找不到模块）
+Expected: FAIL (module not found)
 
-- [ ] **Step 3: 写实现**
+- [ ] **Step 3: Write the implementation**
 
 ```javascript
 // lib/foundation.mjs
@@ -342,11 +342,11 @@ import { hasGene, writeManifest, emptyManifest, genePath } from './manifest.mjs'
 
 const GENE_MD = `# Gene
 
-本项目由 Meta-Harness 基因刻入。架构决定与语境记录于此(可提交、跨会话)。
+This project was stamped with the Meta-Harness gene. Architecture decisions and context are recorded here (committable, cross-session).
 `;
 
 export function stampFoundation(targetDir) {
-  if (hasGene(targetDir)) return { stamped: false };   // 幂等:已刻则跳过
+  if (hasGene(targetDir)) return { stamped: false };   // idempotent: skip if already stamped
   mkdirSync(genePath(targetDir), { recursive: true });
   writeManifest(targetDir, emptyManifest());
   mkdirSync(join(targetDir, 'skills'), { recursive: true });
@@ -356,10 +356,10 @@ export function stampFoundation(targetDir) {
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/foundation.test.mjs`
-Expected: PASS（2 个测试通过）
+Expected: PASS (2 tests pass)
 
 - [ ] **Step 5: Commit**
 
@@ -370,13 +370,13 @@ git commit -m "feat: idempotent foundation stamping (.gene + GENE.md + skills/)"
 
 ---
 
-## Task 4: 指纹幂等装技能 `lib/skill-install.mjs`
+## Task 4: Fingerprint-idempotent skill install `lib/skill-install.mjs`
 
 **Files:**
 - Create: `lib/skill-install.mjs`
 - Test: `test/skill-install.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: Write the failing test**
 
 ```javascript
 // test/skill-install.test.mjs
@@ -395,7 +395,7 @@ function makeSkill(dir, body) {
   writeFileSync(join(dir, 'scripts', 'x.mjs'), body, 'utf8');
 }
 
-test('首次安装: changed=true, 文件被复制', () => {
+test('first install: changed=true, files are copied', () => {
   const src = tmp(); const dst = tmp();
   makeSkill(src, 'export const v = 1;');
   const r = installSkill(dst, src, 'demo');
@@ -405,7 +405,7 @@ test('首次安装: changed=true, 文件被复制', () => {
   rmSync(src, { recursive: true, force: true }); rmSync(dst, { recursive: true, force: true });
 });
 
-test('重装相同内容: changed=false(幂等)', () => {
+test('reinstall identical content: changed=false (idempotent)', () => {
   const src = tmp(); const dst = tmp();
   makeSkill(src, 'export const v = 1;');
   installSkill(dst, src, 'demo');
@@ -414,7 +414,7 @@ test('重装相同内容: changed=false(幂等)', () => {
   rmSync(src, { recursive: true, force: true }); rmSync(dst, { recursive: true, force: true });
 });
 
-test('源内容变化则指纹变化', () => {
+test('changed source content changes the fingerprint', () => {
   const a = tmp(); const b = tmp();
   makeSkill(a, 'export const v = 1;');
   makeSkill(b, 'export const v = 2;');
@@ -423,12 +423,12 @@ test('源内容变化则指纹变化', () => {
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/skill-install.test.mjs`
-Expected: FAIL（找不到模块）
+Expected: FAIL (module not found)
 
-- [ ] **Step 3: 写实现**
+- [ ] **Step 3: Write the implementation**
 
 ```javascript
 // lib/skill-install.mjs
@@ -455,7 +455,7 @@ export function installSkill(targetDir, srcDir, name) {
   const fingerprint = fingerprintDir(srcDir);
   const destBase = join(targetDir, 'skills', name);
   if (existsSync(destBase) && fingerprintDir(destBase) === fingerprint) {
-    return { name, fingerprint, changed: false };       // 幂等:内容一致则跳过
+    return { name, fingerprint, changed: false };       // idempotent: skip if content matches
   }
   for (const f of walk(srcDir)) {
     const dest = join(destBase, relative(srcDir, f));
@@ -466,10 +466,10 @@ export function installSkill(targetDir, srcDir, name) {
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/skill-install.test.mjs`
-Expected: PASS（3 个测试通过）
+Expected: PASS (3 tests pass)
 
 - [ ] **Step 5: Commit**
 
@@ -480,13 +480,13 @@ git commit -m "feat: fingerprint-idempotent skill install"
 
 ---
 
-## Task 5: 编译 AGENTS.md `lib/compiler.mjs`
+## Task 5: Compile AGENTS.md `lib/compiler.mjs`
 
 **Files:**
 - Create: `lib/compiler.mjs`
 - Test: `test/compiler.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: Write the failing test**
 
 ```javascript
 // test/compiler.test.mjs
@@ -505,26 +505,26 @@ function addSkill(dir, name, desc, when) {
   writeFileSync(join(s, 'skill.yaml'), `name: ${name}\ndescription: ${desc}\nwhen-to-use: ${when}\n`, 'utf8');
 }
 
-test('listSkills 读出名称/描述/when-to-use 并排序', () => {
+test('listSkills reads name/description/when-to-use and sorts', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前审查 diff');
-  addSkill(d, 'audit', '设计审查', '检查反模式');
+  addSkill(d, 'review', 'Code review', 'Review the diff before committing');
+  addSkill(d, 'audit', 'Design review', 'Check for anti-patterns');
   const list = listSkills(d);
   assert.deepEqual(list.map((s) => s.name), ['audit', 'review']);
-  assert.equal(list[1].whenToUse, '提交前审查 diff');
+  assert.equal(list[1].whenToUse, 'Review the diff before committing');
   rmSync(d, { recursive: true, force: true });
 });
 
-test('renderAgentsMd 含标题与每个技能段', () => {
-  const md = renderAgentsMd([{ name: 'review', description: '代码审查', whenToUse: '提交前审查 diff' }]);
+test('renderAgentsMd includes a title and a section per skill', () => {
+  const md = renderAgentsMd([{ name: 'review', description: 'Code review', whenToUse: 'Review the diff before committing' }]);
   assert.match(md, /^# AGENTS\.md/);
   assert.match(md, /### review/);
   assert.match(md, /skills\/review\//);
 });
 
-test('compileAgentsMd 写出文件且返回技能数', () => {
+test('compileAgentsMd writes the file and returns the skill count', () => {
   const d = tmp();
-  addSkill(d, 'review', '代码审查', '提交前审查 diff');
+  addSkill(d, 'review', 'Code review', 'Review the diff before committing');
   const n = compileAgentsMd(d);
   assert.equal(n, 1);
   assert.equal(existsSync(join(d, 'AGENTS.md')), true);
@@ -533,12 +533,12 @@ test('compileAgentsMd 写出文件且返回技能数', () => {
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/compiler.test.mjs`
-Expected: FAIL（找不到模块）
+Expected: FAIL (module not found)
 
-- [ ] **Step 3: 写实现**
+- [ ] **Step 3: Write the implementation**
 
 ```javascript
 // lib/compiler.mjs
@@ -562,14 +562,14 @@ export function renderAgentsMd(skills) {
   const lines = [
     '# AGENTS.md',
     '',
-    '> 由 Meta-Harness 基因编译生成,供任意 AI 编码宿主读取。',
+    '> Compiled from the Meta-Harness gene, to be read by any AI coding host.',
     '',
     '## Skills',
     '',
   ];
   for (const s of skills) {
     lines.push(`### ${s.name}`, '', s.description, '',
-      `- 何时使用: ${s.whenToUse}`, `- 位置: \`skills/${s.name}/\``, '');
+      `- When to use: ${s.whenToUse}`, `- Location: \`skills/${s.name}/\``, '');
   }
   return lines.join('\n');
 }
@@ -581,10 +581,10 @@ export function compileAgentsMd(targetDir) {
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/compiler.test.mjs`
-Expected: PASS（3 个测试通过）
+Expected: PASS (3 tests pass)
 
 - [ ] **Step 5: Commit**
 
@@ -595,13 +595,13 @@ git commit -m "feat: compile skills/ to AGENTS.md (open standard)"
 
 ---
 
-## Task 6: 编排 + 命令行入口 `lib/cli.mjs`
+## Task 6: Orchestration + command-line entry point `lib/cli.mjs`
 
 **Files:**
 - Create: `lib/cli.mjs`
 - Test: `test/cli.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: Write the failing test**
 
 ```javascript
 // test/cli.test.mjs
@@ -620,9 +620,9 @@ function makeSrc(name, desc, when) {
   return src;
 }
 
-test('空项目 inherit: 刻地基 + 装技能 + 编译, 清单含该技能', () => {
+test('inherit on empty project: stamp foundation + install skill + compile, manifest contains the skill', () => {
   const d = tmp();
-  const src = makeSrc('review', '代码审查', '提交前审查 diff');
+  const src = makeSrc('review', 'Code review', 'Review the diff before committing');
   const r = inherit(d, { name: 'review', from: src });
   assert.equal(r.stamped, true);
   assert.equal(r.skill.changed, true);
@@ -632,20 +632,20 @@ test('空项目 inherit: 刻地基 + 装技能 + 编译, 清单含该技能', ()
   rmSync(d, { recursive: true, force: true }); rmSync(src, { recursive: true, force: true });
 });
 
-test('第二次 inherit 加新技能: 不重刻地基(stamped=false), 清单含两技能', () => {
+test('second inherit adds a new skill: foundation not re-stamped (stamped=false), manifest has both skills', () => {
   const d = tmp();
-  const src1 = makeSrc('review', '代码审查', 'x');
-  const src2 = makeSrc('audit', '设计审查', 'y');
+  const src1 = makeSrc('review', 'Code review', 'x');
+  const src2 = makeSrc('audit', 'Design review', 'y');
   inherit(d, { name: 'review', from: src1 });
   const r2 = inherit(d, { name: 'audit', from: src2 });
-  assert.equal(r2.stamped, false);                       // 地基只刻一次
+  assert.equal(r2.stamped, false);                       // foundation stamped only once
   assert.deepEqual(readManifest(d).skills.map((s) => s.name), ['audit', 'review']);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('重复 inherit 同一技能: 幂等(skill.changed=false)', () => {
+test('repeated inherit of the same skill: idempotent (skill.changed=false)', () => {
   const d = tmp();
-  const src = makeSrc('review', '代码审查', 'x');
+  const src = makeSrc('review', 'Code review', 'x');
   inherit(d, { name: 'review', from: src });
   const r2 = inherit(d, { name: 'review', from: src });
   assert.equal(r2.skill.changed, false);
@@ -654,12 +654,12 @@ test('重复 inherit 同一技能: 幂等(skill.changed=false)', () => {
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/cli.test.mjs`
-Expected: FAIL（找不到模块）
+Expected: FAIL (module not found)
 
-- [ ] **Step 3: 写实现**
+- [ ] **Step 3: Write the implementation**
 
 ```javascript
 // lib/cli.mjs
@@ -669,8 +669,8 @@ import { compileAgentsMd } from './compiler.mjs';
 import { readManifest, writeManifest, upsertSkill } from './manifest.mjs';
 
 export function inherit(targetDir, { name, from }) {
-  const stamp = stampFoundation(targetDir);                       // 幂等
-  const skill = installSkill(targetDir, from, name);              // 幂等
+  const stamp = stampFoundation(targetDir);                       // idempotent
+  const skill = installSkill(targetDir, from, name);              // idempotent
   const manifest = upsertSkill(readManifest(targetDir), name, skill.fingerprint);
   writeManifest(targetDir, manifest);
   const compiledSkills = compileAgentsMd(targetDir);
@@ -696,10 +696,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/cli.test.mjs`
-Expected: PASS（3 个测试通过）
+Expected: PASS (3 tests pass)
 
 - [ ] **Step 5: Commit**
 
@@ -710,7 +710,7 @@ git commit -m "feat: idempotent inherit orchestration + CLI entry"
 
 ---
 
-## Task 7: 黄金技能 `/review`(DNA 种子)
+## Task 7: Golden skill `/review` (DNA seed)
 
 **Files:**
 - Create: `gene/golden-skill/scripts/collect-diff.mjs`
@@ -719,7 +719,7 @@ git commit -m "feat: idempotent inherit orchestration + CLI entry"
 - Create: `gene/golden-skill/reference/review-standards.md`
 - Test: `test/collect-diff.test.mjs`
 
-- [ ] **Step 1: 写失败测试(确定性 diff 脚本)**
+- [ ] **Step 1: Write the failing test (deterministic diff script)**
 
 ```javascript
 // test/collect-diff.test.mjs
@@ -742,16 +742,16 @@ function gitRepo() {
   return { d, run };
 }
 
-test('collectDiff 列出改动文件与 diff 文本', () => {
+test('collectDiff lists changed files and diff text', () => {
   const { d } = gitRepo();
-  writeFileSync(join(d, 'a.txt'), 'one\ntwo\n');           // 改动
+  writeFileSync(join(d, 'a.txt'), 'one\ntwo\n');           // change
   const r = collectDiff(d, 'HEAD');
   assert.deepEqual(r.files, ['a.txt']);
   assert.match(r.diff, /\+two/);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('无改动时 files 为空', () => {
+test('files is empty when there are no changes', () => {
   const { d } = gitRepo();
   const r = collectDiff(d, 'HEAD');
   assert.deepEqual(r.files, []);
@@ -759,12 +759,12 @@ test('无改动时 files 为空', () => {
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败**
+- [ ] **Step 2: Run and confirm it fails**
 
 Run: `node --test test/collect-diff.test.mjs`
-Expected: FAIL（找不到模块）
+Expected: FAIL (module not found)
 
-- [ ] **Step 3: 写确定性 diff 脚本**
+- [ ] **Step 3: Write the deterministic diff script**
 
 ```javascript
 // gene/golden-skill/scripts/collect-diff.mjs
@@ -777,64 +777,64 @@ export function collectDiff(cwd = process.cwd(), base = 'HEAD') {
   return { files, diff };
 }
 
-// CLI: node collect-diff.mjs [base]  → 打印 JSON(供 agent 读取,0 token 推理)
+// CLI: node collect-diff.mjs [base]  → prints JSON (for the agent to read, 0-token reasoning)
 if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(JSON.stringify(collectDiff(process.cwd(), process.argv[2] || 'HEAD')));
 }
 ```
 
-- [ ] **Step 4: 运行,确认通过**
+- [ ] **Step 4: Run and confirm it passes**
 
 Run: `node --test test/collect-diff.test.mjs`
-Expected: PASS（2 个测试通过）
+Expected: PASS (2 tests pass)
 
-- [ ] **Step 5: 写 `skill.yaml`(元信息 + 自描述字段)**
+- [ ] **Step 5: Write `skill.yaml` (metadata + self-describing fields)**
 
 ```yaml
 # gene/golden-skill/skill.yaml
 name: review
-description: 对当前改动做代码审查(确定性取 diff + LLM 评审)
-when-to-use: 提交或合并前,需要审查代码改动的正确性与质量时
-# 自描述原语(基因⑤;v0.1 仅声明,不强制)
+description: Code-review the current changes (deterministically collect the diff + LLM review)
+when-to-use: Before committing or merging, when you need to review code changes for correctness and quality
+# Self-describing primitives (gene ⑤; v0.1 only declares them, does not enforce)
 uses:
   mcp: []
   permissions: []
   subagents: []
 ```
 
-- [ ] **Step 6: 写 `prompt.md`(LLM 语义层)**
+- [ ] **Step 6: Write `prompt.md` (LLM semantic layer)**
 
 ```markdown
 <!-- gene/golden-skill/prompt.md -->
-# /review — 代码审查
+# /review — Code review
 
-你是一个严格但务实的代码审查者。
+You are a strict but pragmatic code reviewer.
 
-## 步骤
-1. 运行确定性脚本取得改动(0 token 推理):
+## Steps
+1. Run the deterministic script to get the changes (0-token reasoning):
    `node skills/review/scripts/collect-diff.mjs HEAD`
-   它输出 JSON:`{ files: string[], diff: string }`。
-2. 若 `files` 为空,回复"无改动可审查"并停止。
-3. 仅在需要时,加载 `skills/review/reference/review-standards.md` 作为审查标准(基因③:按需加载)。
-4. 针对 `diff`,逐条给出:问题位置(file:行)、严重度(blocker/warning/nit)、原因、修法建议。
-5. 末尾给一句总体结论(可合并 / 需修改)。
+   It outputs JSON: `{ files: string[], diff: string }`.
+2. If `files` is empty, reply "No changes to review" and stop.
+3. Only when needed, load `skills/review/reference/review-standards.md` as the review standard (gene ③: load on demand).
+4. For the `diff`, give for each issue: location (file:line), severity (blocker/warning/nit), reason, and a fix suggestion.
+5. End with a one-line overall verdict (mergeable / needs changes).
 
-## 约束
-- 只评审 diff 内的改动,不要泛泛重写整个文件。
-- 确定性的事(改了哪些文件)用脚本结果,不要猜。
+## Constraints
+- Review only the changes within the diff; do not broadly rewrite entire files.
+- For deterministic facts (which files changed), use the script's results; do not guess.
 ```
 
-- [ ] **Step 7: 写 `reference/review-standards.md`(按需知识)**
+- [ ] **Step 7: Write `reference/review-standards.md` (on-demand knowledge)**
 
 ```markdown
 <!-- gene/golden-skill/reference/review-standards.md -->
-# 审查标准(按需加载)
+# Review standards (loaded on demand)
 
-- **正确性**:边界条件、空值、错误处理、并发/竞态。
-- **安全**:注入、越权、密钥硬编码、不可信输入。
-- **可读性**:命名、函数长度、重复(DRY)。
-- **测试**:改动是否有对应测试;断言是否有意义。
-- **严重度**:blocker(必须改)/ warning(应改)/ nit(可选)。
+- **Correctness**: boundary conditions, null values, error handling, concurrency/races.
+- **Security**: injection, privilege escalation, hardcoded secrets, untrusted input.
+- **Readability**: naming, function length, duplication (DRY).
+- **Tests**: do the changes have corresponding tests; are the assertions meaningful.
+- **Severity**: blocker (must fix) / warning (should fix) / nit (optional).
 ```
 
 - [ ] **Step 8: Commit**
@@ -846,59 +846,59 @@ git commit -m "feat: golden skill /review (deterministic diff + LLM review promp
 
 ---
 
-## Task 8: `/inherit` 元命令 + 插件接线
+## Task 8: `/inherit` meta-command + plugin wiring
 
 **Files:**
 - Create: `commands/inherit.md`
-- Modify: `plugin.json`（确认已含 `commands/inherit.md`,Task 0 已写,无需改;若缺则补)
+- Modify: `plugin.json` (confirm it already includes `commands/inherit.md`; written in Task 0, no change needed; add it if missing)
 
-> 说明:这是 Markdown 提示词,不做单元测试;验证方式见 Step 2 / Step 3。
+> Note: this is a Markdown prompt, so there are no unit tests; see Step 2 / Step 3 for verification.
 
-- [ ] **Step 1: 写 `commands/inherit.md`**
+- [ ] **Step 1: Write `commands/inherit.md`**
 
 ````markdown
 <!-- commands/inherit.md -->
 ---
 name: inherit
-description: 把基因地基刻进当前项目并长出一个基因合规技能(幂等)
+description: Stamp the gene foundation into the current project and grow a gene-compliant skill (idempotent)
 ---
 
-# /inherit — 长出一个基因合规技能
+# /inherit — Grow a gene-compliant skill
 
-你的任务:在**当前项目**里,用 Meta-Harness 的确定性引擎,幂等地刻地基并长出用户想要的技能。**不要**手工创建 `.gene/` 或编辑 `AGENTS.md`——这些由引擎完成,保证幂等。
+Your task: in the **current project**, use the Meta-Harness deterministic engine to idempotently stamp the foundation and grow the skill the user wants. Do **not** manually create `.gene/` or edit `AGENTS.md` — the engine does these, guaranteeing idempotency.
 
-## 流程
+## Flow
 
-1. **理解意图**:与用户对话,弄清这个技能要做什么。问清:
-   - 技能要解决什么?(一句话)
-   - 技能名(kebab-case,如 `review`、`changelog`)?
-   - 它需要确定性脚本吗?需要哪些 reference 知识?
-2. **准备技能源目录**:在临时位置 `/$TMP/<name>/` 按黄金技能结构生成:
-   - `skill.yaml`(含 `name`/`description`/`when-to-use` 与 `uses:` 自描述字段)
-   - `prompt.md`(LLM 语义层)
-   - 如需:`scripts/*.mjs`(确定性,0 token)、`reference/*.md`(按需知识)
-   参照种子结构:本插件的 `gene/golden-skill/`。
-3. **调用确定性引擎(它负责幂等)**:
+1. **Understand intent**: talk with the user to figure out what the skill should do. Clarify:
+   - What does the skill solve? (one sentence)
+   - The skill name (kebab-case, e.g. `review`, `changelog`)?
+   - Does it need a deterministic script? Which reference knowledge does it need?
+2. **Prepare the skill source directory**: in a temporary location `/$TMP/<name>/`, generate the golden-skill structure:
+   - `skill.yaml` (with `name`/`description`/`when-to-use` and the `uses:` self-describing fields)
+   - `prompt.md` (LLM semantic layer)
+   - If needed: `scripts/*.mjs` (deterministic, 0 tokens), `reference/*.md` (on-demand knowledge)
+   Refer to the seed structure: this plugin's `gene/golden-skill/`.
+3. **Call the deterministic engine (it handles idempotency)**:
    ```bash
    node <plugin>/lib/cli.mjs inherit . --name <name> --from /$TMP/<name>
    ```
-   引擎会:无地基则刻(`.gene/`、`GENE.md`、`skills/`)→ 指纹幂等地装技能 → 更新 `.gene/gene.yaml` → 重新编译 `AGENTS.md`。
-4. **回报结果**:把引擎输出的 JSON(`stamped`/`skill.changed`/`compiledSkills`)转述给用户;若 `skill.changed=false`,说明该技能已存在且未变化(幂等,未重复写)。
+   The engine will: stamp the foundation if absent (`.gene/`, `GENE.md`, `skills/`) → install the skill fingerprint-idempotently → update `.gene/gene.yaml` → recompile `AGENTS.md`.
+4. **Report the result**: relay the engine's JSON output (`stamped`/`skill.changed`/`compiledSkills`) to the user; if `skill.changed=false`, explain that the skill already exists and is unchanged (idempotent, not rewritten).
 
-## 原则
-- 严格幂等:可安全重跑,不破坏用户已有文件。
-- 刻完即走:不要在项目里留下对本插件的运行时依赖。
-- 生成的技能必须带齐基因:`scripts/`(确定性)⟂ `prompt.md`(语义)、`skill.yaml` 的 when-to-use 与自描述字段。
+## Principles
+- Strictly idempotent: safe to rerun, never breaks the user's existing files.
+- Stamp and leave: do not leave a runtime dependency on this plugin in the project.
+- The generated skill must carry the full genes: `scripts/` (deterministic) ⟂ `prompt.md` (semantic), plus `skill.yaml`'s when-to-use and self-describing fields.
 ````
 
-- [ ] **Step 2: 验证 plugin.json 引用正确**
+- [ ] **Step 2: Verify the plugin.json reference is correct**
 
 Run: `node -e "const p=require('./plugin.json'); if(!p.commands.includes('commands/inherit.md')) throw new Error('missing command'); console.log('plugin ok')"`
 Expected: `plugin ok`
 
-- [ ] **Step 3: 人工核对清单(写进 commit message)**
+- [ ] **Step 3: Manual review checklist (record in the commit message)**
 
-确认:`commands/inherit.md` 有 frontmatter(name/description);流程引用的 `lib/cli.mjs` 接口与 Task 6 一致(`inherit . --name --from`);引用的种子路径 `gene/golden-skill/` 存在。
+Confirm: `commands/inherit.md` has frontmatter (name/description); the `lib/cli.mjs` interface referenced in the flow matches Task 6 (`inherit . --name --from`); the referenced seed path `gene/golden-skill/` exists.
 
 - [ ] **Step 4: Commit**
 
@@ -909,14 +909,14 @@ git commit -m "feat: /inherit meta-command prompt wired to deterministic engine"
 
 ---
 
-## Task 9: 端到端验收测试(对应 spec §9)
+## Task 9: End-to-end acceptance test (corresponds to spec §9)
 
 **Files:**
 - Test: `test/acceptance.test.mjs`
 
-> 覆盖 §9 中可自动化的验收点(余下"另一宿主识别"为人工核对,见 Step 5)。
+> Covers the automatable acceptance points in §9 (the remaining "recognized by another host" is a manual check; see Step 5).
 
-- [ ] **Step 1: 写验收测试**
+- [ ] **Step 1: Write the acceptance test**
 
 ```javascript
 // test/acceptance.test.mjs
@@ -933,7 +933,7 @@ import { fingerprintDir } from '../lib/skill-install.mjs';
 const GOLDEN = resolve('gene/golden-skill');
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-acc-')); }
 
-test('§9.1 空目录 inherit → 地基 + 技能 + AGENTS.md', () => {
+test('§9.1 inherit on empty dir → foundation + skill + AGENTS.md', () => {
   const d = tmp();
   const r = inherit(d, { name: 'review', from: GOLDEN });
   assert.equal(r.stamped, true);
@@ -943,22 +943,22 @@ test('§9.1 空目录 inherit → 地基 + 技能 + AGENTS.md', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('§9.2 再次 inherit 加技能 → 不重刻地基, 已有文件指纹不变', () => {
+test('§9.2 inherit again to add a skill → foundation not re-stamped, existing files keep their fingerprint', () => {
   const d = tmp();
   inherit(d, { name: 'review', from: GOLDEN });
   const before = fingerprintDir(join(d, 'skills', 'review'));
-  // 造第二个技能源
+  // Build a second skill source
   const src2 = tmp();
   cpSync(GOLDEN, src2, { recursive: true });
-  writeFileSync(join(src2, 'skill.yaml'), 'name: audit\ndescription: 设计审查\nwhen-to-use: 检查反模式\n', 'utf8');
+  writeFileSync(join(src2, 'skill.yaml'), 'name: audit\ndescription: Design review\nwhen-to-use: Check for anti-patterns\n', 'utf8');
   const r2 = inherit(d, { name: 'audit', from: src2 });
-  assert.equal(r2.stamped, false);                                   // 地基只刻一次
+  assert.equal(r2.stamped, false);                                   // foundation stamped only once
   assert.deepEqual(readManifest(d).skills.map((s) => s.name), ['audit', 'review']);
-  assert.equal(fingerprintDir(join(d, 'skills', 'review')), before); // 已有技能零改动
+  assert.equal(fingerprintDir(join(d, 'skills', 'review')), before); // existing skill is unchanged
   rmSync(d, { recursive: true, force: true }); rmSync(src2, { recursive: true, force: true });
 });
 
-test('§9.3 /review 确定性脚本对真实 diff 取出改动', () => {
+test('§9.3 /review deterministic script extracts changes from a real diff', () => {
   const d = tmp();
   inherit(d, { name: 'review', from: GOLDEN });
   const run = (...a) => execFileSync('git', a, { cwd: d });
@@ -974,15 +974,15 @@ test('§9.3 /review 确定性脚本对真实 diff 取出改动', () => {
 });
 ```
 
-- [ ] **Step 2: 运行,确认失败(若引擎有缺口)/通过**
+- [ ] **Step 2: Run and confirm it fails (if the engine has gaps) / passes**
 
 Run: `node --test test/acceptance.test.mjs`
-Expected: PASS（3 个测试通过）。若失败,按报错回到对应 Task 修复。
+Expected: PASS (3 tests pass). If it fails, follow the error back to the corresponding Task and fix it.
 
-- [ ] **Step 3: 跑全量测试**
+- [ ] **Step 3: Run the full test suite**
 
 Run: `node --test`
-Expected: 全部 PASS（fingerprint/manifest/foundation/skill-install/compiler/cli/collect-diff/acceptance)。
+Expected: all PASS (fingerprint/manifest/foundation/skill-install/compiler/cli/collect-diff/acceptance).
 
 - [ ] **Step 4: Commit**
 
@@ -991,16 +991,16 @@ git add test/acceptance.test.mjs
 git commit -m "test: end-to-end acceptance for v0.1 (spec §9)"
 ```
 
-- [ ] **Step 5: 人工验收(§9 余项)**
+- [ ] **Step 5: Manual acceptance (remaining §9 items)**
 
-在一个真实仓库里 `node lib/cli.mjs inherit . --name review --from gene/golden-skill`,然后:
-- 用 Cursor 打开该仓库,确认它能读到生成的 `AGENTS.md` 并据此调用 `review`(此为人工/宿主相关核对,记录结论)。
-- 确认全程"一条命令完成、无需任何方法论/角色"。
+In a real repo, run `node lib/cli.mjs inherit . --name review --from gene/golden-skill`, then:
+- Open that repo in Cursor and confirm it can read the generated `AGENTS.md` and invoke `review` accordingly (this is a manual/host-specific check; record the conclusion).
+- Confirm that the whole thing "completes in one command, with no methodology/roles required".
 
 ---
 
-## Self-Review(计划自查结果)
+## Self-Review (plan self-check results)
 
-- **Spec 覆盖**:§9.1↔Task9.1 / §9.2(幂等)↔Task3/4/6/9.2 / §9.3(/review 跑通)↔Task7/9.3 / §9.4(另一宿主识别)↔Task9.Step5(人工)/ §9.5(一条命令无方法论)↔Task8+Task9.Step5。5 基因:①Task7(scripts⟂prompt)②Task5(AGENTS.md)③Task7(reference 按需)④Task3(GENE.md)⑤Task7(skill.yaml uses 字段)。
-- **占位符**:无 TBD/TODO;所有代码步骤含完整代码与命令。
-- **类型/签名一致**:`inherit(targetDir,{name,from})`、`installSkill→{name,fingerprint,changed}`、`gene.yaml={geneVersion,skills:[{name,fingerprint}]}`、`collectDiff(cwd,base)→{files,diff}` 全计划一致。
+- **Spec coverage**: §9.1↔Task9.1 / §9.2 (idempotency)↔Task3/4/6/9.2 / §9.3 (/review works)↔Task7/9.3 / §9.4 (recognized by another host)↔Task9.Step5 (manual) / §9.5 (one command, no methodology)↔Task8+Task9.Step5. The 5 genes: ①Task7 (scripts⟂prompt) ②Task5 (AGENTS.md) ③Task7 (reference on demand) ④Task3 (GENE.md) ⑤Task7 (skill.yaml uses field).
+- **Placeholders**: no TBD/TODO; every code step includes complete code and commands.
+- **Type/signature consistency**: `inherit(targetDir,{name,from})`, `installSkill→{name,fingerprint,changed}`, `gene.yaml={geneVersion,skills:[{name,fingerprint}]}`, `collectDiff(cwd,base)→{files,diff}` are consistent across the whole plan.

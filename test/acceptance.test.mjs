@@ -12,7 +12,7 @@ import { fingerprintDir } from '../lib/skill-install.mjs';
 const GOLDEN = resolve('gene/golden-skill');
 function tmp() { return mkdtempSync(join(tmpdir(), 'mh-acc-')); }
 
-test('§9.1 空目录 inherit → 地基 + 技能 + AGENTS.md', () => {
+test('§9.1 inherit on an empty directory → foundation + skill + AGENTS.md', () => {
   const d = tmp();
   const r = inherit(d, { name: 'review', from: GOLDEN });
   assert.equal(r.stamped, true);
@@ -22,22 +22,22 @@ test('§9.1 空目录 inherit → 地基 + 技能 + AGENTS.md', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('§9.2 再次 inherit 加技能 → 不重刻地基, 已有文件指纹不变', () => {
+test('§9.2 inherit again to add a skill → does not re-stamp the foundation, existing file fingerprints unchanged', () => {
   const d = tmp();
   inherit(d, { name: 'review', from: GOLDEN });
   const before = fingerprintDir(join(d, 'skills', 'review'));
-  // 造第二个技能源
+  // create a second skill source
   const src2 = tmp();
   cpSync(GOLDEN, src2, { recursive: true });
-  writeFileSync(join(src2, 'skill.yaml'), 'name: audit\ndescription: 设计审查\nwhen-to-use: 检查反模式\n', 'utf8');
+  writeFileSync(join(src2, 'skill.yaml'), 'name: audit\ndescription: design review\nwhen-to-use: check for anti-patterns\n', 'utf8');
   const r2 = inherit(d, { name: 'audit', from: src2 });
-  assert.equal(r2.stamped, false);                                   // 地基只刻一次
+  assert.equal(r2.stamped, false);                                   // the foundation is stamped only once
   assert.deepEqual(readManifest(d).skills.map((s) => s.name), ['audit', 'review']);
-  assert.equal(fingerprintDir(join(d, 'skills', 'review')), before); // 已有技能零改动
+  assert.equal(fingerprintDir(join(d, 'skills', 'review')), before); // existing skill unchanged
   rmSync(d, { recursive: true, force: true }); rmSync(src2, { recursive: true, force: true });
 });
 
-test('§9.3 /review 确定性脚本对真实 diff 取出改动', () => {
+test('§9.3 the /review deterministic script extracts changes from a real diff', () => {
   const d = tmp();
   inherit(d, { name: 'review', from: GOLDEN });
   const run = (...a) => execFileSync('git', a, { cwd: d });

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// mcp/server.mjs — 手写零依赖的极简 MCP stdio server,暴露一个 diagnostics 工具。
-// 协议:行分隔 JSON-RPC 2.0;stdout 只放 JSON-RPC,日志一律走 stderr。
+// mcp/server.mjs — hand-written, zero-dependency minimal MCP stdio server exposing a single diagnostics tool.
+// Protocol: line-delimited JSON-RPC 2.0; stdout carries only JSON-RPC, all logs go to stderr.
 import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { runDiagnostics } from '../lib/diagnostics.mjs';
@@ -9,21 +9,21 @@ const PROTOCOL_VERSION = '2025-11-25';
 
 const DIAGNOSTICS_TOOL = {
   name: 'diagnostics',
-  description: '在项目里运行一个诊断命令(如 "npm test" / "npm run build"),返回退出码、错误行摘要与输出尾部,供 agent 自我纠错。',
+  description: 'Run a diagnostic command in the project (e.g. "npm test" / "npm run build") and return the exit code, a summary of error lines, and the tail of the output, so the agent can self-correct.',
   inputSchema: {
     type: 'object',
     properties: {
-      command: { type: 'string', description: '要运行的命令,例如 "npm test"' },
-      cwd: { type: 'string', description: '工作目录(默认当前项目)' },
+      command: { type: 'string', description: 'The command to run, for example "npm test"' },
+      cwd: { type: 'string', description: 'Working directory (defaults to the current project)' },
     },
     required: ['command'],
     additionalProperties: false,
   },
 };
 
-// 纯函数:给一条 JSON-RPC 消息,返回应答对象;notification(无 id)返回 null。
+// Pure function: given a JSON-RPC message, return the response object; a notification (no id) returns null.
 export function handleMessage(msg) {
-  if (!msg || msg.id === undefined) return null; // notification → 不回复
+  if (!msg || msg.id === undefined) return null; // notification → no reply
   const { id, method, params } = msg;
 
   if (method === 'initialize') {
@@ -62,7 +62,7 @@ function isMain() {
   catch { return false; }
 }
 
-// stdio 主循环(仅直接运行时启动;被 import 时不启动,方便测试)
+// stdio main loop (starts only when run directly; not started when imported, to ease testing)
 if (isMain()) {
   let buf = '';
   process.stdin.setEncoding('utf8');
@@ -74,7 +74,7 @@ if (isMain()) {
       buf = buf.slice(nl + 1);
       if (!line) continue;
       let msg;
-      try { msg = JSON.parse(line); } catch { continue; } // 忽略坏行
+      try { msg = JSON.parse(line); } catch { continue; } // ignore malformed lines
       let res = null;
       try { res = handleMessage(msg); } catch (e) { process.stderr.write(`agent-path-forge-mcp error: ${e}\n`); }
       if (res) process.stdout.write(`${JSON.stringify(res)}\n`);

@@ -1,4 +1,4 @@
-// test/registry.test.mjs — 技能版本 + 依赖
+// test/registry.test.mjs — skill versions + dependencies
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -16,12 +16,12 @@ function makeSrc(name, extra = '') {
   return src;
 }
 
-test('checkDependencies: 缺失依赖被列出', () => {
+test('checkDependencies: missing dependencies are listed', () => {
   assert.deepEqual(checkDependencies(['a', 'b'], ['a', 'c']), { ok: false, missing: ['c'] });
   assert.deepEqual(checkDependencies(['a'], []), { ok: true, missing: [] });
 });
 
-test('readSkillMeta 读出 version / dependencies', () => {
+test('readSkillMeta reads out version / dependencies', () => {
   const src = makeSrc('x', 'version: "1.2.3"\ndependencies: ["dep1"]\n');
   const m = readSkillMeta(src);
   assert.equal(m.version, '1.2.3');
@@ -29,15 +29,15 @@ test('readSkillMeta 读出 version / dependencies', () => {
   rmSync(src, { recursive: true, force: true });
 });
 
-test('inherit 记录 version + 报告 missingDeps', () => {
+test('inherit records version + reports missingDeps', () => {
   const d = tmp();
   const src = makeSrc('report', 'version: "0.2.0"\ndependencies: ["charts"]\n');
   const r = inherit(d, { name: 'report', from: src });
   assert.equal(r.version, '0.2.0');
-  assert.deepEqual(r.missingDeps, ['charts']);                       // charts 还没装
+  assert.deepEqual(r.missingDeps, ['charts']);                       // charts not installed yet
   assert.equal(readManifest(d).skills.find((s) => s.name === 'report').version, '0.2.0');
   const src2 = makeSrc('charts');
-  inherit(d, { name: 'charts', from: src2 });                        // 装上依赖
+  inherit(d, { name: 'charts', from: src2 });                        // install the dependency
   assert.deepEqual(inherit(d, { name: 'report', from: src }).missingDeps, []);
   rmSync(d, { recursive: true, force: true });
 });

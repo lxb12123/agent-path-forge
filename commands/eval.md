@@ -5,28 +5,28 @@ argument-hint: skills/<name>
 allowed-tools: Bash(node *)
 ---
 
-# /eval — 评测一个技能
+# /eval — Evaluate a skill
 
-对某个技能(如 `skills/review`)跑它自带的 `evals/` 用例,看它达不达标。
+Run a skill's bundled `evals/` cases (e.g. for `skills/review`) to see whether it meets the bar.
 
-## 流程
-1. 确定要评测的技能目录 `skills/<name>`(问用户或取当前项目里已有的)。
-2. 列出用例:
+## Flow
+1. Determine the skill directory to evaluate, `skills/<name>` (ask the user, or take one already present in the current project).
+2. List the cases:
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" eval skills/<name>
    ```
-   输出 `[{name, input, expect}, ...]`。
-3. **对每个 case**:按 `input` 描述设置场景(必要时建临时 fixture / git 仓库),运行该技能,捕获它的输出文本。
-4. 把所有输出收集成一个 JSON `{ "<caseName>": "<output>" }`,写到临时文件,例如 `runs.json`。
-   - 对带 `expect.rubric` 的用例:你(作为 LLM 裁判)判断该输出是否满足 rubric 描述,写成对象 `{ "<caseName>": { "output": "...", "rubric": true/false } }`。引擎会把确定性断言与你的 rubric 裁决一起计入通过与否。
-5. 判分:
+   Outputs `[{name, input, expect}, ...]`.
+3. **For each case**: set up the scenario as described by `input` (create a temporary fixture / git repo if needed), run the skill, and capture its output text.
+4. Collect all outputs into a single JSON `{ "<caseName>": "<output>" }` and write it to a temp file, e.g. `runs.json`.
+   - For cases with `expect.rubric`: you (as the LLM judge) decide whether the output satisfies the rubric description, written as an object `{ "<caseName>": { "output": "...", "rubric": true/false } }`. The engine counts the deterministic assertions together with your rubric verdict toward pass/fail.
+5. Score:
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" eval skills/<name> --runs runs.json
    ```
-   输出 `{total, passed, failed, cases:[{name, pass, failures}]}`。
-6. 把报告转述给用户;对每个 `failures` 非空的用例,指出哪条期望(contains / notContains / matches)没满足。
+   Outputs `{total, passed, failed, cases:[{name, pass, failures}]}`.
+6. Relay the report to the user; for each case with a non-empty `failures`, point out which expectation (contains / notContains / matches) was not met.
 
-## 说明
-- `expect` 的确定性断言(contains / notContains / matches 正则)由引擎判分,通过/不通过以它为准。
-- 需要主观质量(rubric)评判时,你可以额外评述,但不改变确定性结论。
-- 评测**只读**用户项目,不写入。
+## Notes
+- The deterministic assertions in `expect` (contains / notContains / matches regex) are scored by the engine, and pass/fail is decided by it.
+- When subjective quality (rubric) judgment is needed, you may add commentary, but it does not change the deterministic conclusion.
+- Evaluation is **read-only** on the user's project; it does not write.

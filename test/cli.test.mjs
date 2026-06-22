@@ -14,9 +14,9 @@ function makeSrc(name, desc, when) {
   return src;
 }
 
-test('空项目 inherit: 刻地基 + 装技能 + 编译, 清单含该技能', () => {
+test('inherit on an empty project: stamps the foundation + installs the skill + compiles, manifest includes the skill', () => {
   const d = tmp();
-  const src = makeSrc('review', '代码审查', '提交前审查 diff');
+  const src = makeSrc('review', 'code review', 'review the diff before committing');
   const r = inherit(d, { name: 'review', from: src });
   assert.equal(r.stamped, true);
   assert.equal(r.skill.changed, true);
@@ -26,20 +26,20 @@ test('空项目 inherit: 刻地基 + 装技能 + 编译, 清单含该技能', ()
   rmSync(d, { recursive: true, force: true }); rmSync(src, { recursive: true, force: true });
 });
 
-test('第二次 inherit 加新技能: 不重刻地基(stamped=false), 清单含两技能', () => {
+test('second inherit adding a new skill: does not re-stamp the foundation (stamped=false), manifest includes both skills', () => {
   const d = tmp();
-  const src1 = makeSrc('review', '代码审查', 'x');
-  const src2 = makeSrc('audit', '设计审查', 'y');
+  const src1 = makeSrc('review', 'code review', 'x');
+  const src2 = makeSrc('audit', 'design review', 'y');
   inherit(d, { name: 'review', from: src1 });
   const r2 = inherit(d, { name: 'audit', from: src2 });
-  assert.equal(r2.stamped, false);                       // 地基只刻一次
+  assert.equal(r2.stamped, false);                       // the foundation is stamped only once
   assert.deepEqual(readManifest(d).skills.map((s) => s.name), ['audit', 'review']);
   rmSync(d, { recursive: true, force: true });
 });
 
-test('重复 inherit 同一技能: 幂等(skill.changed=false)', () => {
+test('repeating inherit for the same skill: idempotent (skill.changed=false)', () => {
   const d = tmp();
-  const src = makeSrc('review', '代码审查', 'x');
+  const src = makeSrc('review', 'code review', 'x');
   inherit(d, { name: 'review', from: src });
   const r2 = inherit(d, { name: 'review', from: src });
   assert.equal(r2.skill.changed, false);
@@ -47,7 +47,7 @@ test('重复 inherit 同一技能: 幂等(skill.changed=false)', () => {
   rmSync(d, { recursive: true, force: true });
 });
 
-test('非法技能名被拒绝(防目录逃逸)', () => {
+test('illegal skill names are rejected (guards against directory traversal)', () => {
   const d = tmp();
   const src = makeSrc('x', 'd', 'w');
   assert.throws(() => inherit(d, { name: '../pwned', from: src }), /invalid skill name/);

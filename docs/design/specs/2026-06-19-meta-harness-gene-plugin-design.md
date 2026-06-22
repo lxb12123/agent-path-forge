@@ -1,204 +1,204 @@
-# Agent Path Forge · 基因插件 设计文档(Design Spec)
+# Agent Path Forge · Gene Plugin Design Spec
 
-> 状态:草案 v1 · 日期:2026-06-19 · 待用户评审
-> 标记约定:🟢 = v0.1 先做(核心) · 🔵 = 完整愿景(已纳入架构,分阶段做)
+> Status: Draft v1 · Date: 2026-06-19 · Pending user review
+> Marker convention: 🟢 = v0.1 first (core) · 🔵 = full vision (already in the architecture, delivered in phases)
 
 ---
 
-## 0. 一句话定位
+## 0. One-line positioning
 
-> **一个 agent 原生的轻量插件:它不教你怎么开发,只把一套"好架构基因"刻进任意项目,让 agent 一句话长出继承这套基因的产物(skill/命令/工具…)——纯、轻、刻完即走、可重跑。**
+> **An agent-native, lightweight plugin: it doesn't teach you how to develop; it just stamps a set of "good-architecture genes" into any project, letting the agent grow gene-inheriting artifacts (skill/command/tool…) in one sentence — pure, light, stamp-and-leave, rerunnable.**
 
-## 1. 目标(Product Goal)
+## 1. Product Goal
 
-用户说需求 → 装了本插件的 agent 接手 → agent 可动用 **8 类原语**(skill / command / mcp / hooks / subagents / permissions / rules / ignore)的任意组合 → **只要既达成用户目标、又全程按"完美基因"执行**,产出的结果就是一个好产品。
+User states a need → an agent with this plugin installed takes over → the agent can use any combination of the **8 primitive classes** (skill / command / mcp / hooks / subagents / permissions / rules / ignore) → **as long as it both achieves the user's goal and executes "perfect genes" throughout**, the result is a good product.
 
-> **本项目 = 让 agent 产出"基因合规且达标的优秀产品"的那层基因。**
+> **This project = the gene layer that makes the agent produce "gene-compliant, up-to-standard, excellent products".**
 
-## 2. 与 BMAD-METHOD 的关系(差异化定位)
+## 2. Relationship to BMAD-METHOD (differentiated positioning)
 
-经深度调查(见附录 A),BMAD-METHOD(~49k★)及其 `bmb` 元模块已实现我们最初设想的"5 基因 + 母体长技能",并自带技能评测 harness。因此:
+After deep investigation (see Appendix A), BMAD-METHOD (~49k★) and its `bmb` meta-module already implement what we originally envisioned as "5 genes + a mother that grows skills", and ship a skill-evaluation harness of their own. Therefore:
 
-- ❗ **差异化不在"5 条基因的内容"上**(基因内容 BMAD 也有),而在**纯度 / 形态 / 机制**:
-  - 🎯 **严格幂等**:BMAD 安装器只是"非破坏性更新",大版本升级甚至半破坏性。我们要做**构造级幂等**。
-  - 🎯 **刻完即走 / 宿主优先**:BMAD 是"你去采纳的重型方法论(角色班子 + 多阶段流程)";我们是"刻进宿主项目、归项目所有、不绑母体"的轻地基。主语相反。
-  - 🎯 **低仪式感**:一条幂等命令 vs BMAD 被普遍吐槽的陡峭学习曲线。
-  - 🔵 **运行时可观测**:BMAD 缺失(需外接 Langfuse),是潜在王牌储备。
-- ✅ **多宿主不重造**:直接对齐开放标准(`AGENTS.md` / agentskills.io),不自己发明。
-- ✅ **机会信号**:BMAD 的存在证明"基因"这件事有市场;且其元模块 `bmb` 本身很年轻(~167★),"纯基因"这一刀尚未被坐实。
+- ❗ **The differentiation is not in "the content of the 5 genes"** (BMAD has the gene content too), but in **purity / form / mechanism**:
+  - 🎯 **Strict idempotency**: BMAD's installer is just a "non-destructive update", and major-version upgrades are even semi-destructive. We aim for **constructive-level idempotency**.
+  - 🎯 **Stamp-and-leave / host-first**: BMAD is "a heavyweight methodology you go adopt (a cast of roles + a multi-stage process)"; we are a light foundation that is "stamped into the host project, owned by the project, not bound to the mother". The subject is reversed.
+  - 🎯 **Low ceremony**: one idempotent command vs BMAD's widely-criticized steep learning curve.
+  - 🔵 **Runtime observability**: missing in BMAD (requires an external Langfuse), a potential ace in reserve.
+- ✅ **Don't reinvent multi-host**: align directly with open standards (`AGENTS.md` / agentskills.io), don't invent our own.
+- ✅ **Opportunity signal**: BMAD's existence proves there's a market for "genes"; and its meta-module `bmb` is itself very young (~167★), so the "pure gene" angle has not yet been nailed down.
 
-## 3. 核心概念与执行链
+## 3. Core concepts and the execution chain
 
-| 概念 | 定义 |
+| Concept | Definition |
 |---|---|
-| **基因(Gene)** | 一套被刻进项目、让其中所有产物都自带的架构特性(见 §4) |
-| **产物 / 原子** | 基因合规的最小单位,主要是 **skill**,也可是 command/subagent/hook/mcp |
-| **元命令** | 用来"长/管基因和产物"的命令,如 `/inherit`(母体插件拥有) |
-| **领域命令** | 被长进用户项目、用来执行领域技能达成目标的命令(用户项目拥有) |
+| **Gene** | A set of architectural traits stamped into the project so that every artifact within carries them automatically (see §4) |
+| **Artifact / atom** | The smallest gene-compliant unit, primarily a **skill**, but can also be a command/subagent/hook/mcp |
+| **Meta-command** | A command used to "grow/manage genes and artifacts", such as `/inherit` (owned by the mother plugin) |
+| **Domain command** | A command grown into the user's project, used to run domain skills to achieve goals (owned by the user's project) |
 
-**执行链:**
+**Execution chain:**
 ```
-用户目标
+User goal
   │
-  ▼  显式入口(command) 或 隐式入口(skill 的 when-to-use,agent 自动触发)
-skill(能力原子)
-  ├─ scripts    确定性层(0 token、同入同出)
-  ├─ mcp        工具/探针(日志、截图、AST…)
-  ├─ subagents  拆活给子 agent
-  └─ hooks      生命周期卡点(确定性控制)
+  ▼  Explicit entry (command) or implicit entry (a skill's when-to-use, auto-triggered by the agent)
+skill (capability atom)
+  ├─ scripts    Deterministic layer (0 tokens, same in → same out)
+  ├─ mcp        Tools/probes (logs, screenshots, AST…)
+  ├─ subagents  Delegate work to subagents
+  └─ hooks      Lifecycle checkpoints (deterministic control)
   │
   ▼
-达成目标 + 全程合规基因 = 好产品
+Goal achieved + genes honored throughout = good product
 ```
-> 注:command 是**显式、可预测**的入口,但不是执行 skill 的唯一方式;skill 也能被 agent 依据 `when-to-use` 隐式触发。
+> Note: a command is an **explicit, predictable** entry point, but not the only way to run a skill; a skill can also be implicitly triggered by the agent based on its `when-to-use`.
 
-## 4. 五条基因(每个产物必须带的特性)
+## 4. The five genes (traits every artifact must carry)
 
-| # | 基因 | 含义 | 落点 | 标记 |
+| # | Gene | Meaning | Where it lands | Marker |
 |---|---|---|---|---|
-| ① | 双层结构 | 确定性 + 语义分离 | 每产物 = `scripts/`(确定性)+ `prompt.md`(LLM) | 🟢 |
-| ② | 多宿主编译 + 开放标准 | 一份源 → 多宿主 | 编译出 `AGENTS.md`(对齐 agentskills.io)+ 各宿主特化 | 🟢 `AGENTS.md` / 🔵 特化 |
-| ③ | 三级按需加载 | 渐进披露省 token | 元信息 → 正文 → 资源 | 🟢 |
-| ④ | 可提交工件 | 跨会话/团队 | 配置 `GENE.md` ⟂ 记忆 `MEMORY.md`(明确区分) | 🟢 配置 / 🔵 记忆 |
-| ⑤ | 自描述原语 | 可组合、可审计、安全 | 产物在 `skill.yaml` 声明用到的 mcp/权限/子agent | 🟢 留字段 / 🔵 强约束 |
+| ① | Two-layer structure | Deterministic + semantic separation | Each artifact = `scripts/` (deterministic) + `prompt.md` (LLM) | 🟢 |
+| ② | Multi-host compilation + open standard | One source → many hosts | Compile to `AGENTS.md` (aligned with agentskills.io) + per-host specializations | 🟢 `AGENTS.md` / 🔵 specialization |
+| ③ | Three-tier on-demand loading | Progressive disclosure saves tokens | Metadata → body → resources | 🟢 |
+| ④ | Committable artifacts | Cross-session/team | Config `GENE.md` ⟂ memory `MEMORY.md` (clearly distinguished) | 🟢 config / 🔵 memory |
+| ⑤ | Self-describing primitives | Composable, auditable, secure | Artifacts declare the mcp/permissions/subagents they use in `skill.yaml` | 🟢 leave the fields / 🔵 enforce |
 
-> 已废弃:原"双模式/分层语境"基因(调查判定过拟合、无独立证据),降级为 `rules` 原语下的一种可选策略。
+> Deprecated: the original "dual-mode / layered-context" gene (the investigation judged it overfitted, with no independent evidence) is demoted to an optional strategy under the `rules` primitive.
 
-## 5. 八类原语(agent 为达成目标可动用的积木)
+## 5. The eight primitive classes (the building blocks an agent can use to achieve goals)
 
-> 此分类来自领域真实标准(rulesync 八类矩阵)。它把原先"推迟"的探针/钩子/权限/子agent 全部吸收为一等原语。
+> This taxonomy comes from a real industry standard (the rulesync eight-class matrix). It absorbs the previously "deferred" probes/hooks/permissions/subagents all into first-class primitives.
 
-| 原语 | 在本项目中是什么 | 标记 |
+| Primitive | What it is in this project | Marker |
 |---|---|---|
-| **skills** | 核心原子,长出来的技能 | 🟢 |
-| **commands** | 斜杠命令(元命令 + 领域命令) | 🟢 |
-| **mcp** | 工具接入 —— 日志/截图/AST 探针即 MCP | 🔵 |
-| **hooks** | 生命周期钩子 = 基因①确定性控制层落点 | 🔵 |
-| **subagents** | 子 agent / 多 agent 编排 | 🔵 |
-| **permissions** | 权限 = 安全/信任门落点 | 🔵 |
-| **rules** | 规范/约束(语境分层在此) | 🔵 |
-| **ignore** | 哪些文件 agent 不该碰 | 🔵 |
+| **skills** | The core atom, the skills that get grown | 🟢 |
+| **commands** | Slash commands (meta-commands + domain commands) | 🟢 |
+| **mcp** | Tool integration — log/screenshot/AST probes are MCP | 🔵 |
+| **hooks** | Lifecycle hooks = where gene ①'s deterministic control layer lands | 🔵 |
+| **subagents** | Subagent / multi-agent orchestration | 🔵 |
+| **permissions** | Permissions = where the security/trust gate lands | 🔵 |
+| **rules** | Standards/constraints (context layering lives here) | 🔵 |
+| **ignore** | Which files the agent should not touch | 🔵 |
 
-## 6. 工程化 / 生命周期层
+## 6. Engineering / lifecycle layer
 
-| 血管 | 作用 | 标记 |
+| Vessel | Purpose | Marker |
 |---|---|---|
-| 评测 harness | 产物能不能跑、达不达标 | 🔵 |
-| 可观测 / 追踪 | 运行时遥测(BMAD 缺,潜在王牌) | 🔵 |
-| 版本化 + 依赖 | semver + 产物间依赖解析 | 🔵 |
-| 分发 / 注册表 + 合规校验 | 基因可被分享且校验合规 | 🔵 |
-| 非交互安装器 | 一键、幂等地装进项目 | 🟢 幂等核 / 🔵 完整 |
+| Eval harness | Whether an artifact runs and meets the bar | 🔵 |
+| Observability / tracing | Runtime telemetry (missing in BMAD, a potential ace) | 🔵 |
+| Versioning + dependencies | semver + dependency resolution between artifacts | 🔵 |
+| Distribution / registry + compliance checks | Genes can be shared and validated for compliance | 🔵 |
+| Non-interactive installer | Install into a project in one shot, idempotently | 🟢 idempotency core / 🔵 full |
 
-## 7. 物理结构
+## 7. Physical structure
 
-### 7.1 一个"基因合规产物"(被复制的原子)
+### 7.1 A "gene-compliant artifact" (the atom that gets copied)
 ```
 <skill>/
-├── skill.yaml     🟢 元信息 + when-to-use + 自描述(声明 mcp/权限/子agent)
-├── prompt.md      🟢 LLM 语义层
-├── scripts/       🟢 确定性层(0 token)
-├── reference/     🟢 按需知识(三级加载第三级)
-├── hooks/         🔵 该产物挂的生命周期钩子
-└── evals/         🔵 该产物的评测用例
+├── skill.yaml     🟢 Metadata + when-to-use + self-description (declares mcp/permissions/subagents)
+├── prompt.md      🟢 LLM semantic layer
+├── scripts/       🟢 Deterministic layer (0 tokens)
+├── reference/     🟢 On-demand knowledge (the third tier of three-tier loading)
+├── hooks/         🔵 Lifecycle hooks attached to this artifact
+└── evals/         🔵 Eval cases for this artifact
 ```
 
-### 7.2 刻进宿主项目的"地基"
+### 7.2 The "foundation" stamped into the host project
 ```
-<用户项目>/
+<user project>/
 ├── .gene/
-│   ├── gene.yaml        🟢 基因版本 + 产物清单(幂等检测靠它)
-│   ├── compile.*        🟢 多宿主编译器
-│   ├── registry.yaml    🔵 本地注册表 + 版本/依赖
-│   └── permissions.yaml 🔵 权限/信任策略
-├── skills/<...>/        🟢 技能(原子)
-├── commands/<...>/      🟢 领域命令
-├── subagents/<...>/     🔵 子 agent
-├── hooks/<...>/         🔵 钩子(确定性控制层)
-├── mcp/                 🔵 MCP 工具(含 日志/截图/AST 探针)
-├── .geneignore          🔵 忽略规则
-├── AGENTS.md            🟢 编译产物:开放标准(一份打天下)
-├── .claude/ .cursor/…   🔵 编译产物:各宿主特化
-├── GENE.md              🟢 配置 / 架构决定(可提交)
-└── MEMORY.md            🔵 学习记忆(可提交)
+│   ├── gene.yaml        🟢 Gene version + artifact manifest (idempotency detection relies on it)
+│   ├── compile.*        🟢 Multi-host compiler
+│   ├── registry.yaml    🔵 Local registry + versions/dependencies
+│   └── permissions.yaml 🔵 Permission/trust policy
+├── skills/<...>/        🟢 Skills (atoms)
+├── commands/<...>/      🟢 Domain commands
+├── subagents/<...>/     🔵 Subagents
+├── hooks/<...>/         🔵 Hooks (deterministic control layer)
+├── mcp/                 🔵 MCP tools (incl. log/screenshot/AST probes)
+├── .geneignore          🔵 Ignore rules
+├── AGENTS.md            🟢 Compiled output: open standard (one file for all)
+├── .claude/ .cursor/…   🔵 Compiled output: per-host specializations
+├── GENE.md              🟢 Config / architecture decisions (committable)
+└── MEMORY.md            🔵 Learned memory (committable)
 ```
 
-### 7.3 母体插件本身(我们要发布的东西)
+### 7.3 The mother plugin itself (what we ship)
 ```
-agent-path-forge/                 # 插件根目录
+agent-path-forge/                 # Plugin root directory
 ├── commands/
-│   ├── inherit.md       🟢 /inherit:幂等自举元命令
-│   └── (其他命令)        🔵
+│   ├── inherit.md       🟢 /inherit: idempotent self-bootstrap meta-command
+│   └── (other commands)  🔵
 ├── gene/
-│   ├── golden-skill/    🟢 黄金参考技能(DNA 种子,v0.1 手写 = /review)
-│   └── templates/       🔵 各原语模板(command/subagent/hook/mcp…)
+│   ├── golden-skill/    🟢 Golden reference skill (DNA seed; v0.1 hand-written = /review)
+│   └── templates/       🔵 Templates for each primitive (command/subagent/hook/mcp…)
 ├── compilers/           🟢 → AGENTS.md / 🔵 → .claude/.cursor…
-├── eval-runner/         🔵 评测 harness
-├── observability/       🔵 运行时追踪/遥测
-├── installer/           🟢 幂等引擎 / 🔵 完整安装器
-├── registry/            🔵 分发/注册表 + 合规校验
-└── plugin.json          🟢 插件清单(semver + 🔵 依赖)
+├── eval-runner/         🔵 Eval harness
+├── observability/       🔵 Runtime tracing/telemetry
+├── installer/           🟢 Idempotency engine / 🔵 full installer
+├── registry/            🔵 Distribution/registry + compliance checks
+└── plugin.json          🟢 Plugin manifest (semver + 🔵 dependencies)
 ```
 
-## 8. 两条机制王牌
+## 8. Two mechanism aces
 
-- 🎯 **严格幂等**:`/inherit` 先检测 `.gene/gene.yaml`。
-  - 无 → 刻地基(写入 `.gene/`、`compile.*`、`GENE.md`、`AGENTS.md` 骨架)+ 长出请求的产物。
-  - 有 → 跳过地基,只往 `skills/` 加新产物 + 更新 `gene.yaml` 清单。
-  - **同输入 → 同结果**;重跑任意次都不破坏已有内容(通过清单比对 + 内容指纹保证)。
-- 🎯 **刻完即走**:地基归项目所有,不依赖母体常驻、不要求用户活在某套流程里。
+- 🎯 **Strict idempotency**: `/inherit` first checks `.gene/gene.yaml`.
+  - Absent → stamp the foundation (write the `.gene/`, `compile.*`, `GENE.md`, `AGENTS.md` skeleton) + grow the requested artifact.
+  - Present → skip the foundation, just add the new artifact to `skills/` + update the `gene.yaml` manifest.
+  - **Same input → same result**; rerunning any number of times never breaks existing content (guaranteed by manifest comparison + content fingerprints).
+- 🎯 **Stamp-and-leave**: the foundation is owned by the project; it does not depend on a resident mother, nor require the user to live inside some process.
 
-## 9. v0.1 范围与验收(Definition of Done)
+## 9. v0.1 scope and acceptance (Definition of Done)
 
-**做什么(🟢):**
-1. 母体插件骨架:`/inherit` 元命令 + `golden-skill`(= `/review`)+ `compilers`(只产 `AGENTS.md`)+ `installer` 幂等核 + `plugin.json`。
-2. 黄金技能 `/review`:手写、完美、带齐 5 条 🟢 基因。
-   - `scripts/`:确定性地取 `git diff` + 列改动文件(0 token)。
-   - `prompt.md`:LLM 对 diff 做代码审查。
-   - `reference/`:审查规范,按需加载。
-   - `skill.yaml`:含 when-to-use + 自描述字段(v0.1 仅留字段)。
-3. 幂等 `/inherit`:能在一个空/现有项目里,检测→刻地基(如需)→长出一个基因合规的新技能→更新清单。
+**What we do (🟢):**
+1. Mother-plugin skeleton: `/inherit` meta-command + `golden-skill` (= `/review`) + `compilers` (produce only `AGENTS.md`) + `installer` idempotency core + `plugin.json`.
+2. Golden skill `/review`: hand-written, perfect, carrying all 5 🟢 genes.
+   - `scripts/`: deterministically collect `git diff` + list changed files (0 tokens).
+   - `prompt.md`: LLM code-reviews the diff.
+   - `reference/`: review standards, loaded on demand.
+   - `skill.yaml`: includes when-to-use + self-describing fields (v0.1 only leaves the fields).
+3. Idempotent `/inherit`: in an empty/existing project, can detect → stamp the foundation (if needed) → grow a new gene-compliant skill → update the manifest.
 
-**验收标准(怎么算 v0.1 成功):**
-- [ ] 在一个全新空目录运行 `/inherit` + 描述一个技能想法 → 生成 `.gene/` 地基 + 一个 `skills/<name>/` 合规技能 + `AGENTS.md`。
-- [ ] 再次运行 `/inherit` 加第二个技能 → **不重复刻地基**,只新增技能并更新 `gene.yaml`;已有文件零改动(指纹一致)。
-- [ ] 手写的 `/review` 技能能真实跑:对一段含 bug 的 diff,确定性脚本取出 diff、LLM 给出审查结论。
-- [ ] 生成的技能在 `AGENTS.md` 里能被另一宿主(至少 Cursor)识别使用。
-- [ ] 全过程无需任何"方法论/角色",一条命令完成。
+**Acceptance criteria (what counts as v0.1 success):**
+- [ ] Run `/inherit` in a brand-new empty directory + describe a skill idea → generate the `.gene/` foundation + one compliant `skills/<name>/` skill + `AGENTS.md`.
+- [ ] Run `/inherit` again to add a second skill → **the foundation is not re-stamped**, only the new skill is added and `gene.yaml` is updated; existing files are unchanged (fingerprints match).
+- [ ] The hand-written `/review` skill actually runs: for a diff containing a bug, the deterministic script extracts the diff and the LLM gives a review verdict.
+- [ ] The generated skill in `AGENTS.md` can be recognized and used by another host (at least Cursor).
+- [ ] The whole process needs no "methodology/roles" and completes in one command.
 
-**不做(本期排除,见 🔵):** MCP 探针、子agent、hooks、permissions、ignore、评测 harness、可观测、版本依赖、注册表、宿主特化编译。
+**What we don't do (excluded this round, see 🔵):** MCP probes, subagents, hooks, permissions, ignore, eval harness, observability, version dependencies, registry, per-host specialized compilation.
 
-## 10. 决策与假设(⚠️ 请用户在评审时确认)
+## 10. Decisions and assumptions (⚠️ please confirm during review)
 
-1. **元命令名** = `/inherit`(备选 `/skill`)。
-2. **v0.1 黄金技能** = `/review`(代码审查;理由:天然同时用确定性脚本 + LLM 语义,一次证明 5 基因)。
-3. **产品/插件正式名** = `Agent Path Forge`(gene + blueprint,已定名)。
-4. **基因④**:v0.1 只做配置 `GENE.md`,记忆 `MEMORY.md` 推迟。
-5. **多宿主**:v0.1 只产 `AGENTS.md` 一份,宿主特化推迟。
-6. **黄金技能与技术栈**:基因与技术栈无关;`/review` 作用于任意 git 仓库,不绑 React/Vite(原 React/Vite 锚点撤销)。
-7. **运行时**:命令/技能主体为 Markdown 提示词(Claude Code 本身即引擎,不自建重型引擎);确定性脚本与编译器/安装器默认用 **Node.js**(与 Claude 插件生态、ruler/rulesync 一致),无额外语言依赖。
+1. **Meta-command name** = `/inherit` (alternative `/skill`).
+2. **v0.1 golden skill** = `/review` (code review; rationale: it naturally uses both a deterministic script + LLM semantics, proving all 5 genes in one shot).
+3. **Official product/plugin name** = `Agent Path Forge` (gene + blueprint, already named).
+4. **Gene ④**: v0.1 only does the config `GENE.md`; memory `MEMORY.md` is deferred.
+5. **Multi-host**: v0.1 produces only a single `AGENTS.md`; per-host specialization is deferred.
+6. **Golden skill and tech stack**: genes are tech-stack-independent; `/review` operates on any git repo, not bound to React/Vite (the original React/Vite anchor is withdrawn).
+7. **Runtime**: the body of commands/skills is Markdown prompts (Claude Code itself is the engine; we don't build a heavyweight engine of our own); the deterministic scripts and the compiler/installer default to **Node.js** (consistent with the Claude plugin ecosystem and ruler/rulesync), with no extra language dependency.
 
-## 11. 风险与未决(来自调查)
+## 11. Risks and open questions (from the investigation)
 
-- **AGENTS.md 有效性存疑**:学术研究显示这类指令文件常无益甚至有害(-3% 成功率/+20% 成本);且 Claude Code 原生不读 `AGENTS.md`。→ v0.1 需实测效果,必要时改为宿主特化优先。
-- **幂等是真创新**:无现成实现可抄,需从第一性原理设计 + 自测(指纹/清单)。
-- **评测 / 可观测是无人区**:作为 🔵 差异化储备,可能是后期主打。
-- **竞争**:BMAD 体量大;我们必须始终守住"纯/轻/幂等"定位,不滑向方法论。
+- **AGENTS.md effectiveness is questionable**: academic research shows these instruction files are often unhelpful or even harmful (-3% success rate / +20% cost); and Claude Code does not natively read `AGENTS.md`. → v0.1 must measure the effect for real, and switch to host-specialization-first if necessary.
+- **Idempotency is a genuine innovation**: there is no off-the-shelf implementation to copy; it must be designed from first principles + self-tested (fingerprints/manifest).
+- **Eval / observability is no-man's-land**: as a 🔵 differentiation reserve, it may be the later headline feature.
+- **Competition**: BMAD is large; we must always hold the "pure/light/idempotent" positioning and not slide into a methodology.
 
-## 12. 开发路线图
+## 12. Development roadmap
 
-| 阶段 | 内容 |
+| Phase | Content |
 |---|---|
-| **A** 🟢 | 黄金技能 `/review` + 地基 + 幂等核(v0.1) |
-| **B** | `/inherit` 完整对话流(访谈→命名→放置→编译) |
-| **C** | 打包成可安装母体插件 + AGENTS.md/宿主特化编译 |
-| **D** | 八原语补全 + 工程化层(评测/可观测/版本/注册表/安装器) |
+| **A** 🟢 | Golden skill `/review` + foundation + idempotency core (v0.1) |
+| **B** | `/inherit` full conversational flow (interview → name → place → compile) |
+| **C** | Package as an installable mother plugin + AGENTS.md/per-host specialized compilation |
+| **D** | Complete the eight primitives + the engineering layer (eval/observability/versioning/registry/installer) |
 
 ---
 
-## 附录 A · 调查结论摘要(2026-06-19,109 agent / 26 信源 / 25 条对抗验证)
+## Appendix A · Investigation summary (2026-06-19, 109 agents / 26 sources / 25 adversarial verifications)
 
-- **领域真实存在且庞大**:spec-kit(~111k★,30+ 宿主编译)、bmad-method(~49k★)、awesome-cursorrules(~40k★)、AGENTS.md 标准(12 万+文件,Linux 基金会托管)、config-compiler(ruler/rulesync)、Claude 插件市场。
-- **基因逐条判决**:②多宿主=最强(被 5 项目印证,做小了);③按需加载=强;①确定性/LLM=对但应表述为"控制层";④可提交=对但需区分配置/记忆;⑤双模式=**过拟合,砍**。
-- **漏掉的一等原语**:mcp、permissions、hooks、subagents、版本/依赖、安全/沙箱、分发/注册表+合规、安装器(本 spec §5/§6 已补)。
-- **真空地带(机会)**:严格幂等、技能评测、运行时可观测——三者领域内均无人做好。
-- **来源**:github/spec-kit、bmad-code-org/bmad-method、intellectronica/ruler、dyoshikawa/rulesync、jeremylongshore/claude-code-plugins-plus-skills、agents.md、code.claude.com/docs。
+- **The domain is real and large**: spec-kit (~111k★, 30+ host compilations), bmad-method (~49k★), awesome-cursorrules (~40k★), the AGENTS.md standard (120k+ files, hosted by the Linux Foundation), config-compiler (ruler/rulesync), the Claude plugin marketplace.
+- **Per-gene verdict**: ② multi-host = strongest (corroborated by 5 projects, we had scoped it too small); ③ on-demand loading = strong; ① deterministic/LLM = correct but should be framed as a "control layer"; ④ committable = correct but must distinguish config/memory; ⑤ dual-mode = **overfitted, cut**.
+- **First-class primitives we missed**: mcp, permissions, hooks, subagents, versioning/dependencies, security/sandbox, distribution/registry+compliance, installer (now added in this spec's §5/§6).
+- **Vacuum areas (opportunities)**: strict idempotency, skill evaluation, runtime observability — none of the three is done well in the domain.
+- **Sources**: github/spec-kit, bmad-code-org/bmad-method, intellectronica/ruler, dyoshikawa/rulesync, jeremylongshore/claude-code-plugins-plus-skills, agents.md, code.claude.com/docs.
