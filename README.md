@@ -111,7 +111,8 @@ Plugin metadata comes from a `plugin` object in `.gene/gene.json` (name · descr
 ├── .claude/agents/<name>.md         # compiled: Claude project subagents
 ├── .cursor/rules/<name>.mdc         # compiled: Cursor native (skills + rules)
 ├── .gitignore · .cursorignore · .geminiignore   # compiled: ignore → managed block
-└── GENE.md              # committable config / architecture decisions
+├── GENE.md              # committable config / architecture decisions
+└── MEMORY.md            # committable cross-session memory
 ```
 
 **The Agent Path Forge plugin itself** (this repo):
@@ -226,6 +227,19 @@ directly) or bump the version so the cache refreshes.
 The two usual ways to make agents build consistently each cost you something. **Scaffolders** (`create-react-app`, cookiecutter) hand you a *dead* directory — no governance, no inheritance. **Heavyweight methodologies** make you adopt their whole process — roles, phases, ceremony — and live inside it.
 
 Agent Path Forge takes a third path — **heredity, not methodology.** It imprints a small, opinionated architecture gene, everything your agent grows inherits it, and then it leaves. The value isn't the feature list (others have those) — it's the **purity, form, and idempotency**: a clean architecture any agent can grow on, that you own the moment it lands.
+
+---
+
+## Prior art & acknowledgements
+
+This project stands on established work — it does not claim to have invented the patterns it imprints:
+
+- **Progressive disclosure / three-tier skill loading** is the community's well-documented pattern for token-efficient skills (and the subject of survey work).
+- **[Golden paths / paved roads](https://www.redhat.com/en/topics/platform-engineering/golden-paths)** come from platform engineering.
+- **`AGENTS.md`** is an emerging open standard for agent instructions, read by Codex and others.
+- Frameworks like **BMAD** already generate installable, multi-host agent components from a guided conversation.
+
+What this project contributes is the **synthesis**: distilling these into a single *inheritable* foundation, plus idempotency by construction (content-fingerprinting — re-run safely, never clobber your files) and an actual multi-host *compiler* rather than portability in principle.
 
 ---
 
