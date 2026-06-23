@@ -94,8 +94,8 @@ Plugin metadata comes from a `plugin` object in `.gene/gene.json` (name · descr
 <your-project>/
 ├── .gene/
 │   ├── gene.json        # gene version + product manifest (name · fingerprint · version)
-│   ├── ignore           # ignore-primitive source (one glob per line)
-│   ├── trace.jsonl      # runtime observability log (local; git-ignored)
+│   ├── ignore           # ignore-primitive source — only if you use the ignore primitive
+│   ├── trace.jsonl      # runtime observability log — appears after a tool call (local; git-ignored)
 │   └── .gitignore       # ignores trace.jsonl
 ├── skills/<name>/       # gene-conforming products (source of truth)
 │   ├── skill.yaml       #   metadata + when-to-use + version + uses{mcp,permissions,subagents}
@@ -104,13 +104,13 @@ Plugin metadata comes from a `plugin` object in `.gene/gene.json` (name · descr
 │   ├── reference/       #   load-on-demand knowledge
 │   ├── evals/           #   eval cases (graded by /eval)
 │   └── subagents/       #   optional bundled subagent defs
-├── rules/<name>.md      # rules-primitive source (description · globs · alwaysApply)
-├── AGENTS.md            # compiled: open standard — Skills + Rules (Codex / Cursor / Copilot / Gemini)
-├── CLAUDE.md            # compiled: rules → agent-path-forge-managed block (Claude native)
+├── rules/<name>.md      # rules-primitive source — only if you use the rules primitive
+├── AGENTS.md            # compiled: open standard — Skills (+ Rules) (Codex / Cursor / Copilot / Gemini)
+├── CLAUDE.md            # compiled: rules → managed block — only when rules exist (Claude native)
 ├── .claude/skills/<name>/SKILL.md   # compiled: Claude native (+ allowed-tools from uses.permissions)
 ├── .claude/agents/<name>.md         # compiled: Claude project subagents
 ├── .cursor/rules/<name>.mdc         # compiled: Cursor native (skills + rules)
-├── .gitignore · .cursorignore · .geminiignore   # compiled: ignore → managed block
+├── .gitignore · .cursorignore · .geminiignore   # compiled: ignore → managed block — only when ignore is configured
 ├── GENE.md              # committable config / architecture decisions
 └── MEMORY.md            # committable cross-session memory
 ```
