@@ -27,7 +27,7 @@ test('compileIgnore writes the managed block in all three ignore files, idempote
   assert.equal(n, 2);
   for (const f of ['.gitignore', '.cursorignore', '.geminiignore']) {
     assert.equal(existsSync(join(d, f)), true);
-    assert.match(readFileSync(join(d, f), 'utf8'), /agent-path-forge:ignore/);
+    assert.match(readFileSync(join(d, f), 'utf8'), /agent-plugin-kit:ignore/);
     assert.match(readFileSync(join(d, f), 'utf8'), /secrets\//);
   }
   const git1 = readFileSync(join(d, '.gitignore'), 'utf8');

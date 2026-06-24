@@ -2,3 +2,6 @@
 # YAML reader (lib/yaml-lite.mjs), so there is nothing to install and nothing
 # to commit. node_modules (if a dev ever adds dev-deps) stays out of the repo.
 node_modules/
+
+# macOS Finder metadata
+.DS_Store

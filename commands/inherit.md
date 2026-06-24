@@ -7,7 +7,7 @@ allowed-tools: Bash(node *)
 
 # /inherit — Grow a gene-compliant skill
 
-Your task: inside the **current project**, use Agent Path Forge's deterministic engine to idempotently imprint the foundation and grow the skill the user wants. The engine lives at `${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs`. **Do not** manually create `.gene/` or edit `AGENTS.md` — the engine handles these, guaranteeing idempotency.
+Your task: inside the **current project**, use Agent Plugin Kit's deterministic engine to idempotently imprint the foundation and grow the skill the user wants. The engine lives at `${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs`. **Do not** manually create `.gene/` or edit `AGENTS.md` — the engine handles these, guaranteeing idempotency.
 
 ## Flow
 

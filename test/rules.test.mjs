@@ -53,7 +53,7 @@ test('compileRules writes .cursor/rules + CLAUDE.md managed block, idempotent, p
   assert.equal(existsSync(join(d, '.cursor', 'rules', 'style.mdc')), true);
   const claude1 = readFileSync(join(d, 'CLAUDE.md'), 'utf8');
   assert.match(claude1, /user's own notes/);          // user content preserved
-  assert.match(claude1, /agent-path-forge:rules:start/);
+  assert.match(claude1, /agent-plugin-kit:rules:start/);
   assert.match(claude1, /indent with two spaces/);
   compileRules(d);                                     // compile once more
   assert.equal(readFileSync(join(d, 'CLAUDE.md'), 'utf8'), claude1); // idempotent

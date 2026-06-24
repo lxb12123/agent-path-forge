@@ -1,10 +1,10 @@
 {
-  "name": "agent-path-forge",
+  "name": "agent-plugin-kit",
   "version": "0.1.0",
   "description": "An agent-native gene plugin: one idempotent command imprints a good-architecture gene into any project",
   "type": "module",
   "license": "MIT",
-  "bin": { "agent-path-forge": "lib/cli.mjs" },
+  "bin": { "agent-plugin-kit": "lib/cli.mjs" },
   "scripts": {
     "test": "node --test"
   },

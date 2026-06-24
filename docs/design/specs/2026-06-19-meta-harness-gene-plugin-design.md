@@ -1,4 +1,4 @@
-# Agent Path Forge · Gene Plugin Design Spec
+# Agent Plugin Kit · Gene Plugin Design Spec
 
 > Status: Draft v1 · Date: 2026-06-19 · Pending user review
 > Marker convention: 🟢 = v0.1 first (core) · 🔵 = full vision (already in the architecture, delivered in phases)
@@ -124,7 +124,7 @@ Goal achieved + genes honored throughout = good product
 
 ### 7.3 The mother plugin itself (what we ship)
 ```
-agent-path-forge/                 # Plugin root directory
+agent-plugin-kit/                 # Plugin root directory
 ├── commands/
 │   ├── inherit.md       🟢 /inherit: idempotent self-bootstrap meta-command
 │   └── (other commands)  🔵
@@ -171,7 +171,7 @@ agent-path-forge/                 # Plugin root directory
 
 1. **Meta-command name** = `/inherit` (alternative `/skill`).
 2. **v0.1 golden skill** = `/review` (code review; rationale: it naturally uses both a deterministic script + LLM semantics, proving all 5 genes in one shot).
-3. **Official product/plugin name** = `Agent Path Forge` (gene + blueprint, already named).
+3. **Official product/plugin name** = `Agent Plugin Kit` (gene + blueprint, already named).
 4. **Gene ④**: v0.1 only does the config `GENE.md`; memory `MEMORY.md` is deferred.
 5. **Multi-host**: v0.1 produces only a single `AGENTS.md`; per-host specialization is deferred.
 6. **Golden skill and tech stack**: genes are tech-stack-independent; `/review` operates on any git repo, not bound to React/Vite (the original React/Vite anchor is withdrawn).

@@ -166,6 +166,6 @@ test('inherit --target plugin grows the skill and packs it in one step', () => {
 
 test('pack on a non-gene project → friendly error', () => {
   const d = tmp();
-  assert.throws(() => pack(d), /run `inherit` first|not an Agent Path Forge/);
+  assert.throws(() => pack(d), /run `inherit` first|not an Agent Plugin Kit/);
   rmSync(d, { recursive: true, force: true });
 });

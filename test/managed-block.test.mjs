@@ -34,7 +34,7 @@ test('appends after existing user content, separated by a blank line', () => {
 });
 
 test('B1: file only mentions the end marker in prose, no real block -> does not grow unbounded', () => {
-  const prose = `# My project\n\nNote: agent-path-forge uses ${E} to delimit its block.\n`;
+  const prose = `# My project\n\nNote: agent-plugin-kit uses ${E} to delimit its block.\n`;
   const r1 = upsertBlock(prose, S, E, 'rule body');
   const r2 = upsertBlock(r1, S, E, 'rule body');
   assert.equal(r2, r1);                         // stable from the second run on, no drift

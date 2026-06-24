@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "agent-path-forge-diagnostics": {
+    "agent-plugin-kit-diagnostics": {
       "command": "node",
       "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.mjs"]
     }

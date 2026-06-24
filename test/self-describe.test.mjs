@@ -36,7 +36,7 @@ test('renderClaudeSkill: no permissions means no allowed-tools', () => {
 });
 
 test('renderAgentsMd: non-empty uses are listed as dependencies', () => {
-  const md = renderAgentsMd([{ name: 'review', description: 'd', whenToUse: 'w', uses: { permissions: ['Bash(node *)'], mcp: ['agent-path-forge-diagnostics'], subagents: [] } }]);
-  assert.match(md, /agent-path-forge-diagnostics/);
+  const md = renderAgentsMd([{ name: 'review', description: 'd', whenToUse: 'w', uses: { permissions: ['Bash(node *)'], mcp: ['agent-plugin-kit-diagnostics'], subagents: [] } }]);
+  assert.match(md, /agent-plugin-kit-diagnostics/);
   assert.match(md, /Bash\(node \*\)/);
 });
